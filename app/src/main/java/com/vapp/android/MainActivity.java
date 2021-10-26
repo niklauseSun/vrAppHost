@@ -67,11 +67,11 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         super.onCreate(savedInstanceState);
 
         SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
-        String url = sharedPreferences.getString("baseReqUrl","https://m.mspace.com.sg/mobile/");
+//        String url = sharedPreferences.getString("baseReqUrl","https://m.mspace.com.sg/mobile/");
 
-//        nomalInit(url);
+        nomalInit("https://b.ujbook.com/");
 //        requestBaseUrl();
-        testInit();
+//        testInit();
     }
 
     private void nomalInit(String url) {
