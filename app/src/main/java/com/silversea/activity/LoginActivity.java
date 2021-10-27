@@ -37,7 +37,7 @@ public class LoginActivity extends Activity {
         mUserIdEditText.setText(getUserId());
         mLoginBtn = findViewById(R.id.button_login);
 
-        ChatManager mChatManager = AGApplication.the().getChatManager();
+        ChatManager mChatManager = AGApplication.getInstance(this).getChatManager();
         mRtmClient = mChatManager.getRtmClient();
     }
 

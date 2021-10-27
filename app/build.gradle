@@ -5,11 +5,11 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.vapp.android.book"
+        applicationId "com.vapp.android"
         minSdkVersion 27
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
+        versionName "1.1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -60,13 +60,9 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    // silversea
-
-    implementation 'io.agora.rtc:voice-sdk:3.5.0'
-    // RCT 模块
+//    // RCT 模块
     implementation 'com.github.agorabuilder:native-full-sdk:3.4.3'
     // RTM 模块是的
     implementation 'com.github.agorabuilder:rtm-sdk:1.4.6'
     implementation 'com.theartofdev.edmodo:android-image-cropper:2.8.0'
-
 }

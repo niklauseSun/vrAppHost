@@ -100,7 +100,7 @@ public class TakeToSeeApi implements IBridgeImpl {
 
     public static void adjustPlayerVolume(IQuickFragment webLoader, WebView wv, JSONObject param, Callback callback) {
         int volume = param.optInt("volume");
-        AgoraVideo.getInstance().adjustPlayerVolume(volume);
+//        AgoraVideo.getInstance().adjustPlayerVolume(volume);
     }
 
     public static void adjustRecordingVolume(IQuickFragment webLoader, WebView wv, JSONObject param, Callback callback) {

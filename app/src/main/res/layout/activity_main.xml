@@ -10,10 +10,11 @@
         android:id="@+id/inputButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="68dp"
         android:text="输入网址"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="161dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/defaultButton"
@@ -21,8 +22,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="默认跳转"
-        app:layout_constraintTop_toBottomOf="@+id/inputButton"
-        tools:layout_editor_absoluteX="161dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/inputButton" />
 
     <Button
         android:id="@+id/prevButton"
@@ -30,8 +32,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="跳转到上次页面"
-        app:layout_constraintTop_toBottomOf="@+id/defaultButton"
-        tools:layout_editor_absoluteX="144dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/defaultButton" />
 
     <Button
         android:id="@+id/scan_button"
@@ -39,43 +42,39 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="26dp"
         android:text="扫码"
-        app:layout_constraintTop_toBottomOf="@+id/prevButton"
-        tools:layout_editor_absoluteX="162dp" />
-
-    <Button
-        android:id="@+id/goToCall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="声网测试"
-        app:layout_constraintTop_toBottomOf="@+id/scan_button"
-        tools:layout_editor_absoluteX="161dp" />
-
-    <Button
-        android:id="@+id/goToMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="即时通信测试"
-        app:layout_constraintTop_toBottomOf="@+id/goToCall"
-        tools:layout_editor_absoluteX="161dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/prevButton" />
 
     <Button
         android:id="@+id/selectImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="20dp"
         android:text="选择图片测试"
-        app:layout_constraintTop_toBottomOf="@+id/goToMessage"
-        tools:layout_editor_absoluteX="178dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scan_button" />
 
     <ImageView
         android:id="@+id/showImage"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginTop="84dp"
-        app:layout_constraintTop_toBottomOf="@+id/goToMessage"
-        tools:layout_editor_absoluteX="166dp" />
+        android:layout_marginTop="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/jumpToShowVr" />
+
+    <Button
+        android:id="@+id/jumpToShowVr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="跳转到声网登录"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/selectImage" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -20,14 +20,13 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.quick.core.baseapp.baseactivity.FrmBaseActivity;
 import com.quick.jsbridge.bean.QuickBean;
-import com.quick.jsbridge.view.QuickFragment;
 import com.quick.jsbridge.view.QuickWebLoader;
 import com.vapp.android.activitys.CallActivity;
 import com.vapp.android.activitys.MessageSend;
+import com.silversea.activity.LoginActivity;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +51,7 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
     private Button callTest = null;
     private Button goToMessageButton = null;
     private Button selectImageButton = null;
+    private Button jumpToShowVr = null;
     private ImageView showImage = null;
 
     private Context mContext = this;
@@ -69,9 +69,9 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
 //        String url = sharedPreferences.getString("baseReqUrl","https://m.mspace.com.sg/mobile/");
 
-        nomalInit("https://b.ujbook.com/");
+//        nomalInit("https://b.ujbook.com/");
 //        requestBaseUrl();
-//        testInit();
+        testInit();
     }
 
     private void nomalInit(String url) {
@@ -116,10 +116,11 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         defaultButton = findViewById(R.id.defaultButton);
         prevButton = findViewById(R.id.prevButton);
         scanButton = findViewById(R.id.scan_button);
-        callTest = findViewById(R.id.goToCall);
-        goToMessageButton = findViewById(R.id.goToMessage);
+//        callTest = findViewById(R.id.goToCall);
+//        goToMessageButton = findViewById(R.id.goToMessage);
         selectImageButton = findViewById(R.id.selectImage);
         showImage = findViewById(R.id.showImage);
+        jumpToShowVr = findViewById(R.id.jumpToShowVr);
 
         inputButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,23 +158,23 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
             }
         });
 
-        callTest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent mintent = new Intent(MainActivity.this, CallActivity.class);
+//        callTest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent mintent = new Intent(MainActivity.this, CallActivity.class);
+//
+//                startActivity(mintent);
+//            }
+//        });
 
-                startActivity(mintent);
-            }
-        });
-
-        goToMessageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent mintent = new Intent(MainActivity.this, MessageSend.class);
-
-                startActivity(mintent);
-            }
-        });
+//        goToMessageButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent mintent = new Intent(MainActivity.this, MessageSend.class);
+//
+//                startActivity(mintent);
+//            }
+//        });
 
         selectImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -186,6 +187,14 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
                         .canPreview(true) //是否可以预览图片，默认为true
                         .start(getActivity(), ImageSelector.RESULT_CODE); // 打开相册
 
+            }
+        });
+
+        jumpToShowVr.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent mIntent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(mIntent);
             }
         });
     }

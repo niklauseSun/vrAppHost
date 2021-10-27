@@ -75,7 +75,7 @@ public class MessageActivity extends Activity {
     }
 
     private void init() {
-        mChatManager = AGApplication.the().getChatManager();
+        mChatManager = AGApplication.getInstance(this).getChatManager();
         mRtmClient = mChatManager.getRtmClient();
         mClientListener = new MyRtmClientListener();
         mChatManager.registerListener(mClientListener);

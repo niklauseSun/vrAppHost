@@ -9,9 +9,9 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import io.agora.rtc.Constants;
-import io.agora.rtc.IRtcEngineEventHandler;
-import io.agora.rtc.RtcEngine;
+//import io.agora.rtc.Constants;
+//import io.agora.rtc.IRtcEngineEventHandler;
+//import io.agora.rtc.RtcEngine;
 
 public class TakeToSee implements IRtcImpl {
 
@@ -21,34 +21,34 @@ public class TakeToSee implements IRtcImpl {
     private Context baseContext = null;
     private Activity baseActivity = null;
 
-    private RtcEngine mRtcEngine;
-
-    private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() {
-        @Override
-        public void onUserJoined(int uid, int elapsed) {
-            super.onUserJoined(uid, elapsed);
-            // 用户进入
-            Log.i(LOG_TAG, "enter" + uid);
-        }
-
-        @Override
-        public void onUserOffline(int uid, int reason) {
-            super.onUserOffline(uid, reason);
-            // 用户掉线
-
-            Log.i(LOG_TAG, "offline" + reason);
-        }
-
-
-        @Override
-        public void onUserMuteAudio(int uid, boolean muted) {
-            super.onUserMuteAudio(uid, muted);
-            // 静音
-
-            Log.i(LOG_TAG, "mute" + uid);
-
-        }
-    };
+//    private RtcEngine mRtcEngine;
+//
+//    private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() {
+//        @Override
+//        public void onUserJoined(int uid, int elapsed) {
+//            super.onUserJoined(uid, elapsed);
+//            // 用户进入
+//            Log.i(LOG_TAG, "enter" + uid);
+//        }
+//
+//        @Override
+//        public void onUserOffline(int uid, int reason) {
+//            super.onUserOffline(uid, reason);
+//            // 用户掉线
+//
+//            Log.i(LOG_TAG, "offline" + reason);
+//        }
+//
+//
+//        @Override
+//        public void onUserMuteAudio(int uid, boolean muted) {
+//            super.onUserMuteAudio(uid, muted);
+//            // 静音
+//
+//            Log.i(LOG_TAG, "mute" + uid);
+//
+//        }
+//    };
 
     public void initAgoraEngine(Context mContext, String appId) {
         baseContext = mContext;
@@ -61,26 +61,26 @@ public class TakeToSee implements IRtcImpl {
         joinChannelAction(accessToken, channelName, uid, extraInfo);
     }
 
-    public void muteChannel() {
-        mRtcEngine.adjustRecordingSignalVolume(0);
-    }
+//    public void muteChannel() {
+//        mRtcEngine.adjustRecordingSignalVolume(0);
+//    }
 
 
     public void adjustRecordingVolume(int volume) {
-        mRtcEngine.adjustRecordingSignalVolume(volume);
+//        mRtcEngine.adjustRecordingSignalVolume(volume);
     }
 
-    public void muteRemoteUser() {
-        mRtcEngine.adjustPlaybackSignalVolume(0);
-    }
+//    public void muteRemoteUser() {
+//        mRtcEngine.adjustPlaybackSignalVolume(0);
+//    }
 
-    public void adjustPlayerVolume(int volume) {
-        mRtcEngine.adjustPlaybackSignalVolume(0);
-    }
+//    public void adjustPlayerVolume(int volume) {
+//        mRtcEngine.adjustPlaybackSignalVolume(0);
+//    }
 
-    public void leaveChannle() {
-        mRtcEngine.leaveChannel();
-    }
+//    public void leaveChannle() {
+//        mRtcEngine.leaveChannel();
+//    }
 
     public void setActivity(Activity activity) {
         baseActivity = activity;
@@ -98,7 +98,7 @@ public class TakeToSee implements IRtcImpl {
 
     private void initializeAgoraEngine(Context context, String appId) {
         try {
-            mRtcEngine = RtcEngine.create(context, appId, mRtcEventHandler);
+//            mRtcEngine = RtcEngine.create(context, appId, mRtcEventHandler);
         } catch (Exception e) {
             Log.e(LOG_TAG, Log.getStackTraceString(e));
 
@@ -107,8 +107,8 @@ public class TakeToSee implements IRtcImpl {
     }
 
     private void joinChannelAction(String accessToken, String channelName, int uid, String extraInfo) {
-        mRtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
+//        mRtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
 
-        mRtcEngine.joinChannel(accessToken, channelName, extraInfo , uid);
+//        mRtcEngine.joinChannel(accessToken, channelName, extraInfo , uid);
     }
 }

@@ -58,7 +58,7 @@ public class MessageSend extends AppCompatActivity {
         peer_send = findViewById(R.id.peer_send_button);
 
         agoraMessage = new AgoraMessage();
-        agoraMessage.initRTMMessageClient(this, getString(R.string.silversea_app_id_test));
+        agoraMessage.initRTMMessageClient(this, getString(R.string.agora_app_id));
 
 
         login_button.setOnClickListener(new View.OnClickListener() {
@@ -73,7 +73,7 @@ public class MessageSend extends AppCompatActivity {
         logout_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                agoraMessage.logoutRtm();
+//                agoraMessage.logoutRtm();
             }
         });
 
@@ -84,14 +84,14 @@ public class MessageSend extends AppCompatActivity {
                 String channel_name = channel_input.getText().toString();
                 agoraMessage.createChannerListener();
                 Log.i("MESSAGESEND", channel_name);
-                agoraMessage.joinChannel(channel_name);
+//                agoraMessage.joinChannel(channel_name);
             }
         });
 
         leave_channel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                agoraMessage.leaveChannel();
+//                agoraMessage.leaveChannel();
             }
         });
         
@@ -99,7 +99,7 @@ public class MessageSend extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String channel_text = group_message.getText().toString();
-                agoraMessage.sendChannelMessage(channel_text);
+//                agoraMessage.sendChannelMessage(channel_text);
             }
         });
 
@@ -107,7 +107,7 @@ public class MessageSend extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String peer_text = peer_message.getText().toString();
-                agoraMessage.sendPeerMessage(peer_text, "userB");
+//                agoraMessage.sendPeerMessage(peer_text, "userB");
             }
         });
     }

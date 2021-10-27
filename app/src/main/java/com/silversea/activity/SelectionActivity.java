@@ -38,7 +38,7 @@ public class SelectionActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selection);
 
-        mChatManager = AGApplication.the().getChatManager();
+        mChatManager = AGApplication.getInstance(this).getChatManager();
 
         initUIAndData();
     }

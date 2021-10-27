@@ -46,15 +46,15 @@ public class CallActivity extends AppCompatActivity {
 
     private void initCall() {
         takeToSee = new TakeToSee();
-        takeToSee.initAgoraEngine(this, getString(R.string.silversea_app_id));
+        takeToSee.initAgoraEngine(this, getString(R.string.agora_app_id));
     }
 
 
     private void joinChannel() {
-        takeToSee.joinChannel(getString(R.string.silversea_short_token), getString(R.string.silversea_channel_name), 10, "");
+        takeToSee.joinChannel(getString(R.string.agora_access_token), getString(R.string.channel_title), 10, "");
     }
 
     private void leaveChannel() {
-        takeToSee.leaveChannle();
+//        takeToSee.leaveChannle();
     }
 }

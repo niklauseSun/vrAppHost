@@ -139,7 +139,7 @@ public class ShowVrActivity extends Activity {
 
         mHandler = new Handler();
 
-        mChatManager = AGApplication.the().getChatManager();
+        mChatManager = AGApplication.getInstance(this).getChatManager();
         mRtmClient = mChatManager.getRtmClient();
         mClientListener = new MyRtmClientListener();
         mChatManager.registerListener(mClientListener);

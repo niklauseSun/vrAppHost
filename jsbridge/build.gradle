@@ -33,9 +33,9 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
 
     // RCT 模块
-    implementation 'com.github.agorabuilder:native-full-sdk:3.4.3'
-    // RTM 模块是的
-    implementation 'com.github.agorabuilder:rtm-sdk:1.4.6'
+//    implementation 'com.github.agorabuilder:native-full-sdk:3.4.3'
+//    // RTM 模块是的
+//    implementation 'com.github.agorabuilder:rtm-sdk:1.4.6'
 
     implementation 'com.aliyun.dpa:oss-android-sdk:2.9.5'
 }
