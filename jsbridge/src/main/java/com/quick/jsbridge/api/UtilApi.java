@@ -123,7 +123,6 @@ public class UtilApi implements IBridgeImpl {
     public static void cameraImage(IQuickFragment webLoader, WebView wv, JSONObject param, Callback callback) {
         webLoader.getWebloaderControl().addPort(AutoCallbackDefined.OnChoosePic, callback.getPort());
         webLoader.getQuickFragment().startCamera(param);
-
     }
 
     /**
@@ -235,27 +234,26 @@ public class UtilApi implements IBridgeImpl {
     public static void getMd5List(IQuickFragment webLoader, WebView wv, JSONObject param, Callback callback) {
 
         String filePath = param.optString("filePath");
-        ArrayList md5List = FileSplit.calculateFile(filePath, webLoader.getPageControl().getContext());
-
-        HashMap map = new HashMap();
-
-        map.put("md5List", md5List);
-        callback.applySuccess(map);
+        HashMap md5Obj = FileSplit.calculateFile(filePath, webLoader.getPageControl().getContext());
+        callback.applySuccess(md5Obj);
     }
 
     public static void uploadImage(IQuickFragment webLoader, WebView wv, JSONObject param, Callback callback) {
+        webLoader.getWebloaderControl().addPort(AutoCallbackDefined.onUploadSuccess, callback.getPort());
+
         String reqUrl = param.optString("reqUrl");
         String type = param.optString("type");
         String filePath = param.optString("filePath");
 
-        UploadInstance.UploadImage(reqUrl, type, filePath);
+        UploadInstance.UploadImage(reqUrl, type, filePath, webLoader);
     }
 
     public static void uploadMd5Part(IQuickFragment webLoader, WebView wv, JSONObject param, Callback callback) {
+        webLoader.getWebloaderControl().addPort(AutoCallbackDefined.onUploadSuccess, callback.getPort());
         String reqUrl = param.optString("reqUrl");
         String type = param.optString("type");
         int index = param.optInt("index");
 
-        FileSplit.uploadMd5(reqUrl, type, index);
+        FileSplit.uploadMd5(reqUrl, type, index, webLoader);
     }
 }

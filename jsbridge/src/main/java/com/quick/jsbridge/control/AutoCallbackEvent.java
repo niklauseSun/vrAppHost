@@ -191,6 +191,11 @@ public class AutoCallbackEvent implements AutoCallbackDefined {
         callJS(onLeaveCallChannel, wv, object);
     }
 
+    @Override
+    public void onUploadSuccess(Map<String, Object> object) {
+        callJS(onUploadSuccess, wv, object);
+    }
+
     private void callJS(String key, QuickWebView wv, Map<String, Object> object) {
         if (wv == null) {
             return;

@@ -1,9 +1,17 @@
 package com.quick.jsbridge.view;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.donkingliang.imageselector.utils.ImageSelector;
 import com.quick.core.baseapp.baseactivity.FrmBaseFragment;
@@ -13,16 +21,46 @@ import com.quick.core.util.common.JsonUtil;
 import com.quick.jsbridge.bean.QuickBean;
 import com.quick.jsbridge.control.AutoCallbackDefined;
 import com.quick.jsbridge.control.WebloaderControl;
+import com.quick.jsbridge.takeToSee.AGChatManager;
+import com.quick.jsbridge.takeToSee.AgApplication;
 import com.quick.jsbridge.view.webview.QuickWebView;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
+import io.agora.rtc.Constants;
+import io.agora.rtc.IRtcEngineEventHandler;
+import io.agora.rtc.RtcEngine;
+import io.agora.rtm.ErrorInfo;
+import io.agora.rtm.ResultCallback;
+import io.agora.rtm.RtmClient;
+import io.agora.rtm.RtmClientListener;
+import io.agora.rtm.RtmFileMessage;
+import io.agora.rtm.RtmImageMessage;
+import io.agora.rtm.RtmMediaOperationProgress;
+import io.agora.rtm.RtmMessage;
+import io.agora.rtm.RtmStatusCode;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
 import quick.com.jsbridge.R;
 
 
@@ -33,6 +71,11 @@ import quick.com.jsbridge.R;
  */
 public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
+    private String modelID = "7051c064_o0fM_b6f9";
+    private String modelURL = "https://beyond.3dnest.biz/silversea_dev/takelook/?m="+modelID;
+
+    private final String MESSAGE_TAG = "RTM_MESSAGE_TAG";
+
     /**
      * tab的序号
      */
@@ -42,9 +85,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
      * 浏览器控件
      */
     private QuickWebView wv;
-
-
-
     /**
      * 初始化属性
      */
@@ -59,6 +99,36 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
      * H5加载进度条
      */
 //    private ProgressBar pb;
+
+    private Handler mHandler;
+    /**
+     * 声网代码
+     */
+    private RtmClient rtmClient;
+    private AGChatManager chatManager;
+    private RtmClientListener rtmClientListener;
+
+    // 目标用户
+    private String mPeerId = "369369";
+    private String mUserId = "123333";
+
+    private RtcEngine rtcEngine;
+    private static final int PERMISSION_REQ_ID_RECORD_AUDIO = 22;
+
+    /**
+     * 声网监听
+     */
+    private final IRtcEngineEventHandler rtcEngineEventHandler = new IRtcEngineEventHandler() {
+        @Override
+        public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
+            super.onJoinChannelSuccess(channel, uid, elapsed);
+        }
+
+        @Override
+        public void onUserOffline(int uid, int reason) {
+            super.onUserOffline(uid, reason);
+        }
+    };
 
     public QuickFragment() {
     }
@@ -80,8 +150,17 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
         bean = (QuickBean) getArguments().getSerializable("bean");
 
-        //初始化控件
+        mHandler = new Handler();
+
+        // 初始化聊天
+        initChat();
+        // 初始化控件
         initView();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     /**
@@ -104,8 +183,55 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
             }
         });
 
+        wv.addJavascriptInterface(new JavaScriptInterface(), "WebBridge");
+
         //加载页面
         control.loadPage();
+    }
+
+    protected void initChat() {
+        chatManager = AgApplication.getInstance(this.getActivity()).getChatManager();
+        rtmClient = chatManager.getRtmClient();
+
+        rtmClientListener = new MyRtmClientListener();
+        chatManager.registerListener(rtmClientListener);
+    }
+
+    // native调用js
+    public void callOnData(final String data) {
+        wv.post(new Runnable() {
+            @Override
+            public void run() {
+                String url = "javascript:onData('" + data + "')";
+                wv.loadUrl(url);
+            }
+        });
+    }
+
+    // native 调用js
+    public void callUpdateChatStatus(final String status, String data) {
+        wv.post(new Runnable() {
+            @Override
+            public void run() {
+                String url = "javascript:updateChatStatus('" + status + "')";
+                wv.loadUrl(url);
+            }
+        });
+
+        // 7：被叫方挂断；8：主叫方挂断
+        if (status == "8" || status == "7") {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // 直接reload
+                    hangupViewRefresh();
+                }
+            }, 3000);
+        }
+    }
+
+    public void hangupViewRefresh() {
+        wv.reload();
     }
 
     @Override
@@ -172,7 +298,12 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        control.onResult(requestCode, resultCode, data);
+
+        if (resultCode == PERMISSION_REQ_ID_RECORD_AUDIO) {
+            initAgoraEngineAndJoinChannel();
+        } else {
+            control.onResult(requestCode, resultCode, data);
+        }
     }
 
     @Override
@@ -192,6 +323,10 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
     public void onDestroyView() {
         control.onDestroy();
         super.onDestroyView();
+
+        leaveChannel();
+        RtcEngine.destroy();
+        rtcEngine = null;
     }
 
     @Override
@@ -234,4 +369,421 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         control.autoCallbackEvent.onSearch(object);
     }
 
+    /**
+     * RTM Event listener
+     */
+
+    class MyRtmClientListener implements RtmClientListener {
+        @Override
+        public void onConnectionStateChanged(final int state, int reason) {
+            switch (state) {
+                case RtmStatusCode.ConnectionState.CONNECTION_STATE_RECONNECTING:
+                    Log.i(MESSAGE_TAG, getString(R.string.reconnecting));
+                    break;
+                case RtmStatusCode.ConnectionState.CONNECTION_STATE_ABORTED:
+                    Log.i(MESSAGE_TAG, getString(R.string.account_offline));
+                    break;
+            }
+        }
+
+        @Override
+        public void onMessageReceived(RtmMessage rtmMessage, String peerId) {
+            Log.e(MESSAGE_TAG, "onMessageReceived === " + rtmMessage.getText() + "peerId:" + peerId);
+            try {
+                JSONObject jsonObject = new JSONObject(rtmMessage.getText());
+
+                if (jsonObject.has("data")
+                        && jsonObject.getJSONObject("data").has("state")
+                        && jsonObject.getJSONObject("data").getString("state").equals("initdone")
+                ) {
+                    // webview 初始化消息
+                    // 仅支持1v1，拒绝其他客户带看请求
+                    if (mPeerId != "" && !mPeerId.equals(peerId)) {
+                        Log.d(MESSAGE_TAG,"=========================接收消息处理-peerId.equals(mPeerId)");
+                        Log.d(MESSAGE_TAG,rtmMessage.getText());
+                    } else {
+                        Log.d(MESSAGE_TAG,"=========================接收消息处理-!peerId.equals(mPeerId)");
+                        Log.d(MESSAGE_TAG,rtmMessage.getText());
+                        callOnData(rtmMessage.getText());
+                        callUpdateChatStatus("3", null);
+                    }
+                } else if (jsonObject.has("type")
+                    && jsonObject.getString("type").equals("app-hangup")
+                ) {
+                    // 临时通过消息接收主叫方挂断电话
+                    // 暂时仅支持1V1，拒绝其他客户带看请求
+                    Log.d(MESSAGE_TAG,"=========================接收消息处理-经纪人挂断消息-type-app-hangup");
+                    Log.d(MESSAGE_TAG,rtmMessage.getText());
+                    if (jsonObject.has("hangupType")
+                            && jsonObject.getString("hangupType").equals("7")){
+                        callUpdateChatStatus("7", null);
+                    }else{
+                        // hangupType=5
+                        // 被叫⽅拒接语⾳呼叫（顾问拒接）
+                        callUpdateChatStatus("3", null);
+                        callUpdateChatStatus("5", null);
+                    }
+                } else {
+                    if (peerId != "" && !mPeerId.equals(peerId)) {
+//                            return true;
+                        Log.d(MESSAGE_TAG,"=========================接收消息处理-aaaa");
+                        Log.d(MESSAGE_TAG,rtmMessage.getText());
+                    } else {
+                        if(rtmMessage.getText().indexOf("initstatedone")>0){
+//                                callUpdateChatStatus("103", null);
+                            Log.d(MESSAGE_TAG,"=========================接收消息处理-bbbbcccccc");
+                        }
+                        Log.d(MESSAGE_TAG,"=========================接收消息处理-bbbb");
+                        Log.d(MESSAGE_TAG,rtmMessage.getText());
+                        callOnData(rtmMessage.getText());
+                    }
+                    Log.d(MESSAGE_TAG,"=========================接收消息处理-type-app-else-hangup");
+                    Log.d(MESSAGE_TAG,rtmMessage.getText());
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onImageMessageReceivedFromPeer(RtmImageMessage rtmImageMessage, String s) {
+
+        }
+
+        @Override
+        public void onFileMessageReceivedFromPeer(RtmFileMessage rtmFileMessage, String s) {
+
+        }
+
+        @Override
+        public void onMediaUploadingProgress(RtmMediaOperationProgress rtmMediaOperationProgress, long l) {
+
+        }
+
+        @Override
+        public void onMediaDownloadingProgress(RtmMediaOperationProgress rtmMediaOperationProgress, long l) {
+
+        }
+
+        @Override
+        public void onTokenExpired() {
+
+        }
+
+        @Override
+        public void onPeersOnlineStatusChanged(Map<String, Integer> map) {
+
+        }
+    }
+
+
+    // 用于JS调用Native
+    public class JavaScriptInterface {
+        // 传输数据
+        @JavascriptInterface
+        public void sendData(String data) {
+            RtmMessage message = rtmClient.createMessage();
+
+            message.setText(data);
+            sendPeerMessage(message);
+        }
+
+        // 获取用户信息
+        @JavascriptInterface
+        public String getUserInfo() {
+            // 测试用信息，生产环境下请使用真实信息
+            JSONObject customer = new JSONObject();
+            try {
+                customer.put("customerHeadImage", "./images/default_avator.png");
+                customer.put("customerIdentity", "4");
+                customer.put("customerNickname", "小A");
+                customer.put("customerAccid", "15261805000");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            JSONObject bussiness = new JSONObject();
+            try {
+                bussiness.put("bussinessNickname", "小B");
+                bussiness.put("bussinessHeadImage", "./images/default_avator.png");
+                bussiness.put("bussinessIdentity", "3");
+                bussiness.put("bussinessAccid", "15261805001");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            JSONObject userInfo = new JSONObject();
+            try {
+                userInfo.put("customer", customer);
+                // 注意此处设置值，区分客户端跟经纪人端
+                userInfo.put("currentIdentity", "4");
+                userInfo.put("bussiness", bussiness);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return userInfo.toString();
+        }
+
+        // 打印webview log
+        @JavascriptInterface
+        public void getLog(String msg) {
+            Log.d(MESSAGE_TAG, "getLog: " + msg);
+        }
+
+        // 挂断
+        @JavascriptInterface
+        public void hangup() {
+            Log.d(MESSAGE_TAG, "hangup() ");
+//            mITRTCAudioCall.hangup();
+            // 退出语音
+            leaveChannel();
+            // 更新界面
+            callUpdateChatStatus("8", null);
+            // 通知对方
+            JSONObject hangupMsg = new JSONObject();
+            try {
+                hangupMsg.put("type", "mini-hangup");
+                hangupMsg.put("hangupType", 8);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            RtmMessage message = rtmClient.createMessage();
+            message.setText(hangupMsg.toString());
+            sendPeerMessage(message);
+            // 主动挂断，关闭当前activity
+        }
+
+        @JavascriptInterface
+        public void call() {
+            Log.d(MESSAGE_TAG,">>>>>>呼叫call() ");
+            Log.d(MESSAGE_TAG,"call<<<Manifest.permission.RECORD_AUDIO, PERMISSION_REQ_ID_RECORD_AUDIO");
+
+            JSONObject callData = new JSONObject();
+            try {
+                callData.put("type", "app-call");
+                callData.put("roomid", Integer.parseInt(getUserId()));
+                callData.put("houseid", modelID);
+                callData.put("houseurl", modelURL);
+                SharedPreferences pref = getContext().getSharedPreferences("data", Context.MODE_PRIVATE);
+                callData.put("channelName", pref.getString("channelName", ""));
+
+                RtmMessage message = rtmClient.createMessage();
+                message.setText(callData.toString());
+                sendPeerMessage(message);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @JavascriptInterface
+        public void setHouseProfile(String modelId, String modelUrl) {
+            modelID = modelId;
+            modelURL = modelUrl;
+        }
+
+        @JavascriptInterface
+        public void initMessageAction(String userId) {
+            if (userId.isEmpty()) {
+                userId = getUserId();
+                mUserId = userId;
+            } else {
+                mUserId = userId;
+            }
+            String[] perms = {Manifest.permission.RECORD_AUDIO};
+            if (EasyPermissions.hasPermissions(getContext(), perms)) {
+                initAgoraEngineAndJoinChannel();
+            } else {
+                EasyPermissions.requestPermissions(getActivity(),"请求语音权限进行通话",PERMISSION_REQ_ID_RECORD_AUDIO, perms);
+            }
+        }
+
+        @JavascriptInterface
+        public void joinChannelWithToken(String accessToken, String channelName) {
+            rtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
+            rtcEngine.setAudioProfile(Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY, Constants.AUDIO_SCENARIO_GAME_STREAMING);
+            rtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
+
+            rtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
+
+            rtcEngine.joinChannel(accessToken, channelName, "", Integer.parseInt(mUserId));
+
+            Log.d(MESSAGE_TAG, "joinChannel >>> " + mUserId);
+        }
+
+        @JavascriptInterface
+        public void joinChannelWithName(String channelName) {
+            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
+            joinChannelWithToken(accessToken, channelName);
+        }
+
+        @JavascriptInterface
+        public void joinChannel() {
+            String channelName = createChannel(mUserId);
+            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
+            joinChannelWithToken(accessToken, channelName);
+        }
+
+        @JavascriptInterface
+        public void leaveChannel() {
+            rtcEngine.leaveChannel();
+        }
+
+        @JavascriptInterface
+        public void testJs() {
+            Toast.makeText(getContext() , "testJS", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String getUserId() {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
+        String uId = sharedPreferences.getString("userId" , "");
+        return uId;
+    }
+
+    private void initAgoraEngineAndJoinChannel() {
+        try {
+            rtcEngine = RtcEngine.create(getContext(), getString(R.string.agora_app_id), rtcEngineEventHandler);
+        } catch (Exception e) {
+            Log.e(MESSAGE_TAG, Log.getStackTraceString(e));
+            throw new RuntimeException("NEED TO check rtc sdk init fatal error\n" + Log.getStackTraceString(e));
+        }
+    }
+
+    private void sendPeerMessage(final RtmMessage message) {
+        Log.d(MESSAGE_TAG, "sendPeerMessage >>> userId = " + mPeerId);
+        rtmClient.sendMessageToPeer(mPeerId, message, chatManager.getSendMessageOptions(), new ResultCallback<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Log.d(MESSAGE_TAG, "sendPeerMessage >>> success == " + message.getText());
+            }
+
+            @Override
+            public void onFailure(ErrorInfo errorInfo) {
+                final String errDes = errorInfo.getErrorDescription();
+               Log.d(MESSAGE_TAG, "seedPeerMessage >>> fail == " + errDes);
+            }
+        });
+    }
+
+    private String getToken(final Integer fromId, final String channelName) {
+        final String[] result = {""};
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient client = new OkHttpClient();
+                    Map<String, Object> bodyMap = new HashMap<>();
+
+                    bodyMap.put("channeName", channelName);
+                    bodyMap.put("uid", fromId);
+                    bodyMap.put("role",1);
+
+                    String jsonParams = new JSONObject(bodyMap).toString();
+
+                    RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8")
+                            , jsonParams);
+
+                    Request request = new Request.Builder()
+                            .url("https://pm.shcobol.com/agora/fetch_rtc_token")
+                            .post(body)//传递请求体
+                            .build();
+                    Response response = null;
+                    response = client.newCall(request).execute();//得到Response 对象
+                    if (response.isSuccessful()) {
+                        Log.d(MESSAGE_TAG,"获取数据成功了");
+                        Log.d(MESSAGE_TAG,"response.code()=="+response.code());
+                        String rt = response.body().string();
+                        Log.d(MESSAGE_TAG,"response.body().string()==" + rt);
+                        result[0] =rt;
+                        JSONObject jsonObject = new JSONObject(rt);
+                        if (jsonObject.has("token")){
+                            result[0]=jsonObject.getString("token");
+                        }else{
+                            result[0]="-";
+                        }
+
+                    }
+                } catch (Exception e) {
+
+                }
+            }
+        }).start();
+        try {
+            int waitCount = 0;
+            while (result[0].equals("")) {
+                waitCount++;
+                Thread.sleep(100);
+                if (waitCount > 10) {
+                    break;
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return  result[0];
+    }
+
+    private String createChannel(String mUserId) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateStr = format.format(new Date()) + mUserId;
+        final String slat = "xxxxx";
+        try {
+            dateStr = dateStr + slat;
+            MessageDigest m = MessageDigest.getInstance("MD5");
+            m.update(dateStr.getBytes(StandardCharsets.UTF_8));
+            byte s[] = m.digest();
+            String result = "";
+            for (int i = 0; i < s.length; i++) {
+                result += Integer.toHexString((0x000000FF & s[i]) | 0xFFFFFF00).substring(6);
+            }
+            SharedPreferences.Editor editor = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE).edit();
+            editor.putString("channelName", result);
+            editor.commit();
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
+
+    private void joinChannel() {
+        String channelName = createChannel(mUserId);
+        String accessToken = getToken(Integer.parseInt(mUserId), channelName);
+
+//        if (TextUtils.equals(accessToken, "") || TextUtils.equals())
+        rtcEngine.setLogFilter(0x080f);
+
+        String ts = new SimpleDateFormat("yyyyMMdd").format(new Date());
+        String filePath = "/sdcard/" + ts + ".log";
+        File file = new File(filePath);
+
+        rtcEngine.setLogFile(filePath);
+
+        rtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
+        rtcEngine.setAudioProfile(Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY, Constants.AUDIO_SCENARIO_GAME_STREAMING);
+        rtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
+
+        rtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
+
+        rtcEngine.joinChannel(accessToken, channelName, "", Integer.parseInt(mUserId));
+
+        Log.d(MESSAGE_TAG, "joinChannel >>> " + mUserId);
+    }
+
+    private void leaveChannel() {
+        rtcEngine.leaveChannel();
+    }
+
+    private void onRemoteUserLeft(int uid, int reason) {
+
+    }
+
+    private void onRemoteUserVoiceMuted(int uid, boolean muted) {
+    }
+
 }
+
+

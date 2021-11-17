@@ -173,7 +173,7 @@ public class FileChooser implements IFileChooser {
         if (resultCode == RESULT_OK) {
             if (requestCode == CAMERA_REQUEST_CODE) {
                 //系统拍照
-                photoSelector.handleCamera(new PhotoSelector.CompressResult() {
+                photoSelector.handleCamera(fragment.getPageControl().getActivity(), data,  new PhotoSelector.CompressResult() {
                     @Override
                     public void onCompelete(String path) {
                         filePathCallback(file2Uri(path));

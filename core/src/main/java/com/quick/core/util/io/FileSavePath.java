@@ -70,6 +70,7 @@ public class FileSavePath {
      * @return
      */
     public static String getTempFolder(Context context) {
+
         return getUserFolder(context) + "Temp/";
     }
 

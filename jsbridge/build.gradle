@@ -32,10 +32,8 @@ dependencies {
     implementation 'com.github.donkingliang:ImageSelector:2.2.1'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
 
-    // RCT 模块
-//    implementation 'com.github.agorabuilder:native-full-sdk:3.4.3'
-//    // RTM 模块是的
-//    implementation 'com.github.agorabuilder:rtm-sdk:1.4.6'
+    implementation 'com.github.agorabuilder:rtm-sdk:1.4.6'
+    implementation 'com.github.agorabuilder:native-voice-sdk:3.5.1'
 
-    implementation 'com.aliyun.dpa:oss-android-sdk:2.9.5'
+    implementation 'pub.devrel:easypermissions:3.0.0'
 }

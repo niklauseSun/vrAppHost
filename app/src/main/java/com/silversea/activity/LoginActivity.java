@@ -13,6 +13,9 @@ import android.widget.Toast;
 import io.agora.rtm.ErrorInfo;
 import io.agora.rtm.ResultCallback;
 import io.agora.rtm.RtmClient;
+
+import com.quick.jsbridge.takeToSee.AGChatManager;
+import com.quick.jsbridge.takeToSee.AgApplication;
 import com.silversea.rtmtutorial.AGApplication;
 import com.silversea.rtmtutorial.ChatManager;
 import com.vapp.android.R;
@@ -37,7 +40,9 @@ public class LoginActivity extends Activity {
         mUserIdEditText.setText(getUserId());
         mLoginBtn = findViewById(R.id.button_login);
 
-        ChatManager mChatManager = AGApplication.getInstance(this).getChatManager();
+//        ChatManager mChatManager = AGApplication.getInstance(this).getChatManager();
+//        mRtmClient = mChatManager.getRtmClient();
+        AGChatManager mChatManager = AgApplication.getInstance(this).getChatManager();
         mRtmClient = mChatManager.getRtmClient();
     }
 
@@ -89,7 +94,7 @@ public class LoginActivity extends Activity {
 
             @Override
             public void onFailure(ErrorInfo errorInfo) {
-                Log.i(TAG, "login failed: " + errorInfo.getErrorCode());
+                Log.i(TAG, "login failed: " + errorInfo.getErrorDescription());
                 runOnUiThread(() -> {
                     mLoginBtn.setEnabled(true);
                     mIsInChat = false;

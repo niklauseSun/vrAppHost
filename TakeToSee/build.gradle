@@ -32,16 +32,10 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // RCT 模块
-//    implementation 'com.github.agorabuilder:native-full-sdk:3.4.3'
-//    // RTM 模块
-//    implementation 'com.github.agorabuilder:rtm-sdk:1.4.6'
-
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation project(path: ':jsbridge')
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-//    implementation project(':jsbridge')
 }

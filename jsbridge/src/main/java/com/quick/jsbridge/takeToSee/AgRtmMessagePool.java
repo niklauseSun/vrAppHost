@@ -1,0 +1,36 @@
+package com.quick.jsbridge.takeToSee;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import io.agora.rtm.RtmMessage;
+
+public class AgRtmMessagePool {
+
+    private Map<String, List<RtmMessage>> mOfflineMessageMap = new HashMap<>();
+
+    void insertOfflineMessage(RtmMessage rtmMessage, String peerId) {
+        boolean contains = mOfflineMessageMap.containsKey(peerId);
+
+        List<RtmMessage> list = contains ? mOfflineMessageMap.get(peerId) : new ArrayList<RtmMessage>();
+
+        if (list != null) {
+            list.add(rtmMessage);
+        }
+
+        if (!contains) {
+            mOfflineMessageMap.put(peerId, list);
+        }
+    }
+
+    List<RtmMessage> getAllOfflineMessage(String peerId) {
+        return mOfflineMessageMap.containsKey(peerId) ? mOfflineMessageMap.get(peerId): new ArrayList<RtmMessage>();
+    }
+
+    void removeAllOfflineMessages(String peerId) {
+        mOfflineMessageMap.remove(peerId);
+    }
+
+}

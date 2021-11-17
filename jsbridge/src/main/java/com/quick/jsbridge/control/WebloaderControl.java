@@ -302,7 +302,7 @@ public class WebloaderControl implements IActivityResult, SegActionCallBack, Dow
             } else if (requestCode == CAMERA_REQUEST_CODE) {
                 //拍照
                 if (photoSelector != null) {
-                    photoSelector.handleCamera(new PhotoSelector.CompressResult() {
+                    photoSelector.handleCamera(wv.getContext(), data, new PhotoSelector.CompressResult() {
                         @Override
                         public void onCompelete(String path) {
                             object.put(RESULT_DATA, path);

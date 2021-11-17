@@ -3,6 +3,7 @@ package com.quick.jsbridge.takeToSee;
 import android.util.Log;
 
 import com.bumptech.glide.RequestBuilder;
+import com.quick.jsbridge.view.IQuickFragment;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import okhttp3.Response;
 public class UploadInstance implements IRtcImpl {
 
     private static UploadInstance upload = null;
+    private static IQuickFragment webLoader;
 
     public static final MediaType JSON
             = MediaType.get("application/json; charset=utf-8");
@@ -30,18 +32,18 @@ public class UploadInstance implements IRtcImpl {
         return upload;
     }
 
-    public static void UploadImage(String reqUrl, String type, String filePath) {
+    public static void UploadImage(String reqUrl, String type, String filePath, IQuickFragment webLoader) {
+        webLoader = webLoader;
         File file = new File(filePath);
         HashMap map = new HashMap();
         map.put("image", file);
-
         imageRequest(reqUrl, type, map.toString());
     }
 
-    public static void uploadMd5String(String reqUrl, String type, String md5String) {
+    public static void uploadMd5String(String reqUrl, String type, String md5String, IQuickFragment webLoader) {
         HashMap map = new HashMap();
         map.put("md5String", md5String);
-
+        webLoader = webLoader;
         imageRequest(reqUrl, type, map.toString());
 
     }
@@ -72,6 +74,10 @@ public class UploadInstance implements IRtcImpl {
         Request request = new Request.Builder().url(url).put(body).build();
         try (Response response= client.newCall(request).execute()) {
             Log.i("UPLOAD INSTANCE", response.body().string());
+            HashMap map = new HashMap();
+            map.put("type", "success");
+            map.put("url", url);
+            webLoader.getWebloaderControl().autoCallbackEvent.onUploadSuccess(map);
         } catch (IOException e) {
             e.printStackTrace();
         }

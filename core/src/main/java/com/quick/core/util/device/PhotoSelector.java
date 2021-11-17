@@ -9,16 +9,22 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
 
+import androidx.core.content.FileProvider;
+
 import com.quick.core.util.common.DateUtil;
 import com.quick.core.util.io.FileSavePath;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
@@ -95,7 +101,7 @@ public class PhotoSelector {
      * @param requestCode
      */
     public void requestSysCamera(Activity activity, int requestCode) {
-        requestCamaraPath = getPhotoTmpPath();
+        requestCamaraPath = getPhotoTmpPath(activity.getBaseContext());
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         intent.putExtra(MediaStore.Images.Media.ORIENTATION, 0);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(requestCamaraPath)));
@@ -109,10 +115,33 @@ public class PhotoSelector {
      * @param requestCode
      */
     public void requestSysCamera(Fragment fragment, int requestCode) {
-        requestCamaraPath = getPhotoTmpPath();
+
+//        File f = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra(MediaStore.Images.Media.ORIENTATION, 0);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(requestCamaraPath)));
+//        requestCamaraPath = FileProvider.getUriForFile(fragment.getContext(), fragment.getContext().getPackageName() + ".provider", f).toString();
+//        intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(fragment.getContext(), fragment.getContext().getPackageName() + ".provider", f));
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+//                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//        requestCamaraPath = getPhotoTmpPath(fragment.getContext());
+//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        intent.putExtra(MediaStore.Images.Media.ORIENTATION, 0);
+//        File imageFile = new File(requestCamaraPath);
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//            Uri fileUrl = FileProvider.getUriForFile(fragment.getContext(), fragment.getContext().getPackageName() + ".provider", imageFile);
+//            intent.setDataAndType(fileUrl, "image/jpeg");
+//            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUrl.toString());
+//        } else {
+//            intent.setDataAndType(Uri.fromFile(imageFile), "image/jpeg");
+//            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(requestCamaraPath)));
+//        }
+
+
+
+
+
+//        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(requestCamaraPath)));
         fragment.startActivityForResult(intent, requestCode);
     }
 
@@ -214,13 +243,16 @@ public class PhotoSelector {
      * @param result
      * @return
      */
-    public String handleCamera(CompressResult result) {
+    public String handleCamera(final Context con, final Intent data, CompressResult result) {
         this.result = result;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                decodeFile(requestCamaraPath, dWidth, dQuality);
+                context = con;
+                decodeFile(con, data, dWidth, dQuality);
+//                handlePickBack(con, data);
                 handler.sendEmptyMessage(0x1001);
+
             }
         }).start();
         return desPath;
@@ -258,7 +290,7 @@ public class PhotoSelector {
      *
      * @return
      */
-    public String getDirPath() {
+    public String getDirPath(Context context) {
         if (TextUtils.isEmpty(dirPath)) {
             this.dirPath = FileSavePath.getTempFolder(context);
         }
@@ -313,12 +345,12 @@ public class PhotoSelector {
                 map.put(cursor.getColumnName(i), cursor.getString(i));
             }
             String spath = map.get("_data");
-            decodeFile(spath, dWidth, dQuality);
+            decodeFileWithSrc(spath, dWidth, dQuality);
             cursor.close();
         }
     }
 
-    private void decodeFile(String srcPath, int defaultWidth, int quality) {
+    private void decodeFileWithSrc(String srcPath, int defaultWidth, int quality) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         // 获取这个图片的宽和高
         options.inJustDecodeBounds = true;
@@ -357,6 +389,8 @@ public class PhotoSelector {
             options.inSampleSize = be;// 设置缩放比例
             // 重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
             bitmap = BitmapFactory.decodeFile(srcPath, options);
+//            Bundle extras = data.getExtras();
+//            bitmap = (Bitmap) extras.get("data");
             saveBitmap(bitmap, quality);
 
             if (isDelOriginalFile) {
@@ -368,8 +402,78 @@ public class PhotoSelector {
         }
     }
 
+    private void decodeFile(Context con, Intent data, int defaultWidth, int quality) {
+        context = con;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        // 获取这个图片的宽和高
+        options.inJustDecodeBounds = true;
+
+        Bitmap bitmap; // 此时返回bm为空
+
+        int w = options.outWidth;
+        int h = options.outHeight;
+
+        if (defaultWidth >= w && defaultWidth >= h) {
+            options.inJustDecodeBounds = false;
+//            Uri uri = Uri.parse(srcPath);
+            Bundle extras = data.getExtras();
+            bitmap = (Bitmap) extras.get("data");
+//            mPicture.setImageBitmap(bitmap);
+//            try {
+//                bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(uri));
+//            bitmap = BitmapFactory.decodeFile(srcPath, options);
+                saveBitmap(bitmap, quality);
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            }
+
+        } else {
+
+            int nw;
+            int nh;
+
+            if (h > w) {
+                nw = defaultWidth;
+                nh = nw * h / w;
+            } else {
+                nh = defaultWidth;
+                nw = nh * w / h;
+            }
+
+            int be = 1;// be=1表示不缩放
+            if (w > h && w > nw) {// 如果宽度大的话根据宽度固定大小缩放
+                be = w / nw;
+            } else if (w < h && h > nh) {// 如果高度高的话根据宽度固定大小缩放
+                be = h / nh;
+            }
+            if (be <= 0)
+                be = 1;
+            options.inJustDecodeBounds = false;
+            options.inSampleSize = be;// 设置缩放比例
+            // 重新读入图片，注意此时已经把options.inJustDecodeBounds 设回false了
+//            bitmap = BitmapFactory.decodeFile(srcPath, options);
+            Bundle extras = data.getExtras();
+            bitmap = (Bitmap) extras.get("data");
+            saveBitmap(bitmap, quality);
+
+//            if (isDelOriginalFile) {
+//                File file = new File(srcPath);
+//                if (file.exists()) {
+//                    file.delete();
+//                }
+//            }
+        }
+    }
+
     private void saveBitmap(Bitmap bm, int quality) {
-        desPath = getPhotoTmpPath();
+
+//        if (!requestCamaraPath.isEmpty()) {
+//            desPath = requestCamaraPath;
+//        } else {
+//            desPath = getPhotoTmpPath(context);
+//        }
+
+        desPath = getPhotoTmpPath(context);
         File file = new File(desPath);
         try {
             FileOutputStream out = new FileOutputStream(file);
@@ -382,9 +486,9 @@ public class PhotoSelector {
         }
     }
 
-    private String getPhotoTmpPath() {
+    private String getPhotoTmpPath(Context context) {
         String photoName = DateUtil.convertDate(new Date(), "yyyyMMddHHmss") + "s.jpg";
-        File dir = new File(getDirPath());
+        File dir = new File(getDirPath(context));
         if (!dir.exists()) {
             dir.mkdirs();
         }

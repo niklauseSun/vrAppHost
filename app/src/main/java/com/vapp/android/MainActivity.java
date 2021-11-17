@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.donkingliang.imageselector.utils.ImageSelector;
+import com.qmuiteam.qmui.arch.QMUISwipeBackActivityManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.quick.core.baseapp.baseactivity.FrmBaseActivity;
@@ -60,18 +61,18 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
             = MediaType.get("application/json; charset=utf-8");
 
     private static String prevUrlKey = "prevUrl";
-    private static String defaultUrl = "https://www.zhihu.com/";
+    private static String defaultUrl = "http://10.12.254.231:8080/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
 //        String url = sharedPreferences.getString("baseReqUrl","https://m.mspace.com.sg/mobile/");
 
 //        nomalInit("https://b.ujbook.com/");
-//        requestBaseUrl();
-        testInit();
+        pageControl.getNbBar().hide();
+        requestBaseUrl();
+//        testInit();
     }
 
     private void nomalInit(String url) {
@@ -84,12 +85,14 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         mintent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
 
         startActivity(mintent);
+        pageControl.getNbBar().hide();
         this.finish();
     }
 
     private void compareUrl(String newUrl) {
         SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
         String oldUrl = sharedPreferences.getString("url","https://m.mspace.com.sg/mobile/");
+        pageControl.getNbBar().hide();
 
         if (!newUrl.equals(oldUrl)) {
             nomalInit(newUrl);
@@ -195,13 +198,16 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
             public void onClick(View view) {
                 Intent mIntent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(mIntent);
+
+//                String url = "https://beyond.3dnest.biz/silversea_dev/takelook/?m=7051c064_o0fM_b6f9";
+//                jumpToWebView(mContext, url);
             }
         });
     }
 
 
     private void showInputDialog() {
-        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(this);
+        final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(getContext());
         builder.setTitle("输入网址")
                 .setPlaceholder("在此输入您要跳转的网址")
                 .setInputType(InputType.TYPE_CLASS_TEXT)
@@ -226,8 +232,9 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
                             Toast.makeText(mContext, "请输入正确的地址！", Toast.LENGTH_SHORT).show();
                         }
                     }
-                })
-                .show();
+                });
+
+        builder.show();
     }
 
     private void saveUrl(String url) {

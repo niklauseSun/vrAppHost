@@ -155,4 +155,7 @@ public interface AutoCallbackDefined {
 
     String onLeaveCallChannel = "onLeaveCallChannel";
     void onLeaveCallChannel(Map<String, Object> object);
+
+    String onUploadSuccess = "onUploadSuccess";
+    void onUploadSuccess(Map<String, Object> object);
 }

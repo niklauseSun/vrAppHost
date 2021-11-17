@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 
 import androidx.collection.ArraySet;
 
+import com.quick.jsbridge.view.IQuickFragment;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,23 +18,33 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class FileSplit implements IRtcImpl {
 
-    private static ArraySet<File> fileList;
+    private static ArrayList<File> fileList;
     private static ArrayList<String> md5List;
 
-    public static ArrayList calculateFile(String filePath, Context context) {
+    public static HashMap calculateFile(String filePath, Context context) {
         File targetFile = new File(filePath);
         int count = getSplitFile(targetFile, 1* 1024 * 1024);
 
-        if (count != 0) {
-            saveFileList(context);
-            return md5List;
+        if (!fileList.isEmpty()) {
+            String totalMd = file2Md5(targetFile);
+            String fistMd = file2Md5(fileList.get(0));
+            String lastMd = file2Md5(fileList.get(count - 1));
+
+            HashMap map = new HashMap();
+            map.put("type", "success");
+            map.put("totalMd5", totalMd);
+            map.put("firstMd5", fistMd);
+            map.put("lastMd5", lastMd);
+            map.put("fileList", fileList);
+            return map;
         }
 
-       return new ArrayList();
+       return new HashMap();
     }
 
     public static void saveFileList(Context context) {
@@ -42,9 +54,9 @@ public class FileSplit implements IRtcImpl {
         ed.putStringSet("fileSplitList", new HashSet(Arrays.asList(fileList)));
     }
 
-    public static void uploadMd5(String reqUrl, String type, int index) {
+    public static void uploadMd5(String reqUrl, String type, int index, IQuickFragment webLoader) {
         String md5String = md5List.get(index);
-        UploadInstance.uploadMd5String(reqUrl, type, md5String);
+        UploadInstance.uploadMd5String(reqUrl, type, md5String, webLoader);
     }
 
     public static int getSplitFile(File targetFile, long cutSize) {
@@ -86,10 +98,10 @@ public class FileSplit implements IRtcImpl {
             // 读取切片文件
             File mFile = new File(a + "_" + index + ".tmp");
 
-            String md5String = file2Md5(mFile);
+//            String md5String = file2Md5(mFile);
 
             fileList.add(mFile);
-            md5List.add(md5String);
+//            md5List.add(md5String);
 
             // 如果存在
             if (!fileIsExists(file)) {

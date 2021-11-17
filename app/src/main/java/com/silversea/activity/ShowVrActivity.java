@@ -3,6 +3,7 @@ package com.silversea.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
@@ -23,9 +24,13 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.quick.jsbridge.bean.QuickBean;
+import com.quick.jsbridge.view.QuickWebLoader;
+import com.quick.jsbridge.view.webview.QuickWebView;
 import com.silversea.model.MessageBean;
 import com.silversea.rtmtutorial.AGApplication;
 import com.silversea.rtmtutorial.ChatManager;
+import com.vapp.android.MainActivity;
 import com.vapp.android.R;
 import com.silversea.utils.MessageUtil;
 
@@ -66,7 +71,7 @@ public class ShowVrActivity extends Activity {
 
     private String modelID = "7051c064_o0fM_b6f9";
     private String modelURL = "https://beyond.3dnest.biz/silversea_dev/takelook/?m="+modelID;
-    private WebView mWebView;
+    private QuickWebView mWebView;
 
 
     private String mPeerId = "";
@@ -150,7 +155,7 @@ public class ShowVrActivity extends Activity {
 
         Log.d(LOG_TAG,"onCreate-----mPeerId:"+mPeerId+">>>mUserId:"+mUserId);
 
-        mWebView = (WebView) findViewById(R.id.webview);
+//        mWebView = (QuickWebView) findViewById(R.id.webview);
 
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO, PERMISSION_REQ_ID_RECORD_AUDIO)) {
             initAgoraEngineAndJoinChannel();
@@ -161,31 +166,49 @@ public class ShowVrActivity extends Activity {
 
     // 加载WebView VR页面
     private void showWebView() {
+
+        runOnUiThread(() -> {
+            jumpToWebView(modelURL + "&showtakelook=on");
+        });
+
+
         // 隐藏键盘 todo:
         // https://www.it1352.com/1918487.html
         // ((InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(ShowVrActivity.this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
 
         // js interface, 用于js调用native
-        mWebView.addJavascriptInterface(new JavaScriptInterface(), "WebBridge");
-        WebSettings settings = mWebView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        // 用于适配webview界面
-        settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
-        settings.setTextZoom(100);
+//        mWebView.addJavascriptInterface(new JavaScriptInterface(), "WebBridge");
+//        WebSettings settings = mWebView.getSettings();
+//        settings.setJavaScriptEnabled(true);
+//        settings.setDomStorageEnabled(true);
+//        // 用于适配webview界面
+//        settings.setUseWideViewPort(true);
+//        settings.setLoadWithOverviewMode(true);
+//        settings.setTextZoom(100);
+//
+//        mWebView.loadUrl(modelURL + "&showtakelook=on");
+//        Log.i(LOG_TAG,modelURL + "&showtakelook=on");
+//        mWebView.setWebViewClient(new WebViewClient() {
+//            @Override
+//            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                view.loadUrl(url);
+//                Log.i(LOG_TAG,modelURL + "&showtakelook=on2222222");
+//                return true;
+//            }
+//        });
 
-        mWebView.loadUrl(modelURL + "&showtakelook=on");
-        Log.i(LOG_TAG,modelURL + "&showtakelook=on");
-        mWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                Log.i(LOG_TAG,modelURL + "&showtakelook=on2222222");
-                return true;
-            }
-        });
+
+    }
+
+    private void jumpToWebView(String url) {
+        Intent mintent = new Intent(ShowVrActivity.this, QuickWebLoader.class);
+        QuickBean bean = new QuickBean(url);
+        mintent.putExtra("bean", bean);
+        startActivity(mintent);
+//        Intent starter = new Intent(context, VWebView.class);
+//        starter.putExtra("loadUrl", url);
+//        startActivity(starter);
     }
 
     //用于js调用native
@@ -193,7 +216,6 @@ public class ShowVrActivity extends Activity {
         // 传输数据
         @JavascriptInterface
         public void sendData(String data) {
-//            mITRTCAudioCall.sendIMMsg(data);
             Log.d(LOG_TAG,"sendData(String data)0 "+data);
             RtmMessage message = mRtmClient.createMessage();
             message.setText(data);
@@ -274,13 +296,7 @@ public class ShowVrActivity extends Activity {
         @JavascriptInterface
         public void call() {
             Log.d(LOG_TAG,">>>>>>呼叫call() ");
-//            Log.i(LOG_TAG,">>>consultID:"+consultID+">>>callData:"+callData);
-//            mITRTCAudioCall.call(consultID, callData);
-
-//            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO, PERMISSION_REQ_ID_RECORD_AUDIO)) {
-//                initAgoraEngineAndJoinChannel();
-                Log.d(LOG_TAG,"call<<<Manifest.permission.RECORD_AUDIO, PERMISSION_REQ_ID_RECORD_AUDIO");
-//            }
+            Log.d(LOG_TAG,"call<<<Manifest.permission.RECORD_AUDIO, PERMISSION_REQ_ID_RECORD_AUDIO");
 
             JSONObject callData = new JSONObject();
             try {
@@ -297,8 +313,6 @@ public class ShowVrActivity extends Activity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
-
         }
     }
 
