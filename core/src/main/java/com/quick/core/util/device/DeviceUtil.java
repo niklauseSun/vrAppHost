@@ -185,6 +185,7 @@ public class DeviceUtil {
     public static String getDeviceId(Context con) {
         TelephonyManager tm = (TelephonyManager) con
                 .getSystemService(Context.TELEPHONY_SERVICE);
+
         String deviceid = tm.getDeviceId();
         if (TextUtils.isEmpty(deviceid)) {
             deviceid = Settings.Secure.getString(con.getContentResolver(), Settings.Secure.ANDROID_ID);

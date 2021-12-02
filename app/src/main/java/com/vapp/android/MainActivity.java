@@ -66,13 +66,13 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
-//        String url = sharedPreferences.getString("baseReqUrl","https://m.mspace.com.sg/mobile/");
-
-//        nomalInit("https://b.ujbook.com/");
-        pageControl.getNbBar().hide();
-        requestBaseUrl();
+        if (BuildConfig.DEBUG) {
+            nomalInit("http://10.12.254.140:8080/");
+        } else {
+            requestBaseUrl();
+        }
 //        testInit();
+        pageControl.getNbBar().hide();
     }
 
     private void nomalInit(String url) {
@@ -86,6 +86,8 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
 
         startActivity(mintent);
         pageControl.getNbBar().hide();
+
+        requestCodeQRCodePermissions();
         this.finish();
     }
 
@@ -105,6 +107,8 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
             editor.putString("baseReqUrl", newUrl);
             //步骤4：提交
             editor.commit();
+        } else {
+            nomalInit(newUrl);
         }
     }
 
@@ -261,6 +265,8 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         QuickBean bean = new QuickBean(url);
         mintent.putExtra("bean", bean);
         startActivity(mintent);
+
+        requestCodeQRCodePermissions();
 //        Intent starter = new Intent(context, VWebView.class);
 //        starter.putExtra("loadUrl", url);
 //        startActivity(starter);
@@ -282,7 +288,6 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
     @Override
     protected void onStart() {
         super.onStart();
-        requestCodeQRCodePermissions();
     }
 
     @Override

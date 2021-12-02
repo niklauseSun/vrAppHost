@@ -9,6 +9,7 @@
         <item name="windowActionBar">false</item>//无ActionBar
         <item name="windowNoTitle">true</item> //无标题
         <item name="android:windowFullscreen">true</item> //全屏
+        <item name="android:windowBackground">@drawable/bg_splash</item>
     </style>
 
     <style name="MatchMatch">

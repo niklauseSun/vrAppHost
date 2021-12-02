@@ -77,10 +77,11 @@ public class DeviceApi implements IBridgeImpl {
         //设备分辨率
         Point point = DeviceUtil.getPhonePixel(webLoader.getPageControl().getActivity());
         object.put("pixel", point.x + "*" + point.y);
+        object.put("type", "android");
         //唯一标识(机器码或者MAC地址)
-        object.put("deviceId", DeviceUtil.getDeviceId(webLoader.getPageControl().getActivity()));
+//        object.put("deviceId", DeviceUtil.getDeviceId(webLoader.getPageControl().getActivity()));
         //网络状态 -1:无网络1：wifi 0：移动网络
-        object.put("netWorkType", DeviceUtil.getNetWorkType(webLoader.getPageControl().getActivity()));
+//        object.put("netWorkType", DeviceUtil.getNetWorkType(webLoader.getPageControl().getActivity()));
         callback.applySuccess(object);
     }
 

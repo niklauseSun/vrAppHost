@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import android.os.Bundle;
+import android.view.KeyEvent;
 
 import com.quick.core.baseapp.baseactivity.FrmBaseActivity;
 import com.quick.jsbridge.bean.QuickBean;
@@ -106,6 +107,11 @@ public class QuickWebLoader extends FrmBaseActivity {
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return false;
+//        return super.onKeyDown(keyCode, event);
+    }
 
     public static void go(Context context, QuickBean bean) {
         Intent intent = new Intent(context, QuickWebLoader.class);

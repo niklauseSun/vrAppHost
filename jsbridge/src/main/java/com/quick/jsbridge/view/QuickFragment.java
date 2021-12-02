@@ -1,16 +1,16 @@
 package com.quick.jsbridge.view;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.donkingliang.imageselector.utils.ImageSelector;
@@ -28,18 +28,15 @@ import com.quick.jsbridge.view.webview.QuickWebView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.PrivateKey;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import io.agora.rtc.Constants;
@@ -59,11 +56,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 import quick.com.jsbridge.R;
-
-
 
 /**
  * Created by dailichun on 2017/12/7.
@@ -75,11 +69,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
     private String modelURL = "https://beyond.3dnest.biz/silversea_dev/takelook/?m="+modelID;
 
     private final String MESSAGE_TAG = "RTM_MESSAGE_TAG";
-
-    /**
-     * tab的序号
-     */
-    public static int indexBottom;
 
     /**
      * 浏览器控件
@@ -111,6 +100,8 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
     // 目标用户
     private String mPeerId = "369369";
     private String mUserId = "123333";
+
+    private String channelName = "";
 
     private RtcEngine rtcEngine;
     private static final int PERMISSION_REQ_ID_RECORD_AUDIO = 22;
@@ -301,6 +292,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
         if (resultCode == PERMISSION_REQ_ID_RECORD_AUDIO) {
             initAgoraEngineAndJoinChannel();
+            joinChannel();
         } else {
             control.onResult(requestCode, resultCode, data);
         }
@@ -398,7 +390,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                 ) {
                     // webview 初始化消息
                     // 仅支持1v1，拒绝其他客户带看请求
-                    if (mPeerId != "" && !mPeerId.equals(peerId)) {
+                    if (mPeerId.equals("") && !mPeerId.equals(peerId)) {
                         Log.d(MESSAGE_TAG,"=========================接收消息处理-peerId.equals(mPeerId)");
                         Log.d(MESSAGE_TAG,rtmMessage.getText());
                     } else {
@@ -424,7 +416,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                         callUpdateChatStatus("5", null);
                     }
                 } else {
-                    if (peerId != "" && !mPeerId.equals(peerId)) {
+                    if (!peerId.isEmpty() && !mPeerId.equals(peerId)) {
 //                            return true;
                         Log.d(MESSAGE_TAG,"=========================接收消息处理-aaaa");
                         Log.d(MESSAGE_TAG,rtmMessage.getText());
@@ -536,7 +528,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         @JavascriptInterface
         public void hangup() {
             Log.d(MESSAGE_TAG, "hangup() ");
-//            mITRTCAudioCall.hangup();
             // 退出语音
             leaveChannel();
             // 更新界面
@@ -566,8 +557,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                 callData.put("roomid", Integer.parseInt(getUserId()));
                 callData.put("houseid", modelID);
                 callData.put("houseurl", modelURL);
-                SharedPreferences pref = getContext().getSharedPreferences("data", Context.MODE_PRIVATE);
-                callData.put("channelName", pref.getString("channelName", ""));
+                callData.put("channelName", channelName);
 
                 RtmMessage message = rtmClient.createMessage();
                 message.setText(callData.toString());
@@ -577,76 +567,124 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
             }
         }
 
-        @JavascriptInterface
-        public void setHouseProfile(String modelId, String modelUrl) {
-            modelID = modelId;
-            modelURL = modelUrl;
-        }
+//        @JavascriptInterface
+//        public void setHouseProfile(String modelId, String modelUrl) {
+//            modelID = modelId;
+//            modelURL = modelUrl;
+//        }
 
         @JavascriptInterface
-        public void initMessageAction(String userId) {
-            if (userId.isEmpty()) {
-                userId = getUserId();
+        public void initMessageAction(String msg) {
+            try {
+                JSONObject obj = new JSONObject(msg);
+                String userId = obj.optString("userId");
+                if (userId.isEmpty()) {
+                    userId = getUserId();
+                }
                 mUserId = userId;
-            } else {
-                mUserId = userId;
+                String[] perms = {Manifest.permission.RECORD_AUDIO};
+                if (EasyPermissions.hasPermissions(getContext(), perms)) {
+                    initAgoraEngineAndJoinChannel();
+                    joinChannel();
+                } else {
+                    EasyPermissions.requestPermissions(getActivity(),"请求语音权限进行通话",PERMISSION_REQ_ID_RECORD_AUDIO, perms);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-            String[] perms = {Manifest.permission.RECORD_AUDIO};
-            if (EasyPermissions.hasPermissions(getContext(), perms)) {
-                initAgoraEngineAndJoinChannel();
-            } else {
-                EasyPermissions.requestPermissions(getActivity(),"请求语音权限进行通话",PERMISSION_REQ_ID_RECORD_AUDIO, perms);
-            }
+
         }
 
-        @JavascriptInterface
-        public void joinChannelWithToken(String accessToken, String channelName) {
-            rtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
-            rtcEngine.setAudioProfile(Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY, Constants.AUDIO_SCENARIO_GAME_STREAMING);
-            rtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
+//        @JavascriptInterface
+//        public void joinChannelWithToken(String accessToken, String channelName) {
+//            rtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
+//            rtcEngine.setAudioProfile(Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY, Constants.AUDIO_SCENARIO_GAME_STREAMING);
+//            rtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
+//
+//            rtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
+//
+//            rtcEngine.joinChannel(accessToken, channelName, "", Integer.parseInt(mUserId));
+//
+//            Log.d(MESSAGE_TAG, "joinChannel >>> " + mUserId);
+//        }
 
-            rtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
+//        @JavascriptInterface
+//        public void joinChannelWithName(String channelName) {
+//            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
+//            joinChannelWithToken(accessToken, channelName);
+//        }
 
-            rtcEngine.joinChannel(accessToken, channelName, "", Integer.parseInt(mUserId));
+//        @JavascriptInterface
+//        public void joinChannel() {
+//            String channelName = createChannel(mUserId);
+//            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
+//            joinChannelWithToken(accessToken, channelName);
+//        }
 
-            Log.d(MESSAGE_TAG, "joinChannel >>> " + mUserId);
-        }
-
-        @JavascriptInterface
-        public void joinChannelWithName(String channelName) {
-            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
-            joinChannelWithToken(accessToken, channelName);
-        }
-
-        @JavascriptInterface
-        public void joinChannel() {
-            String channelName = createChannel(mUserId);
-            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
-            joinChannelWithToken(accessToken, channelName);
-        }
-
-        @JavascriptInterface
-        public void leaveChannel() {
-            rtcEngine.leaveChannel();
-        }
+//        @JavascriptInterface
+//        public void leaveChannel() {
+//            rtcEngine.leaveChannel();
+//        }
 
         @JavascriptInterface
         public void testJs() {
             Toast.makeText(getContext() , "testJS", Toast.LENGTH_SHORT).show();
         }
+
+        @JavascriptInterface
+        public void jumpToWebView(String url) {
+//            String url = "https://www.baidu.com";
+            Intent intent = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setPackage("com.android.chrome");
+            try {
+                getContext().startActivity(intent);
+            } catch (ActivityNotFoundException ex) {
+                // Chrome browser presumably not installed so allow user to choose instead
+                intent.setPackage(null);
+                getContext().startActivity(intent);
+                Toast.makeText(getContext() , "Need Chrome to experience AR feature", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private String getUserId() {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
-        String uId = sharedPreferences.getString("userId" , "");
-        return uId;
+//        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
+//        String uId = sharedPreferences.getString("userId" , "");
+        return mUserId;
     }
 
     private void initAgoraEngineAndJoinChannel() {
         try {
             rtcEngine = RtcEngine.create(getContext(), getString(R.string.agora_app_id), rtcEngineEventHandler);
+            rtmClient.login(null, mUserId, new ResultCallback<Void>() {
+                @Override
+                public void onSuccess(Void unused) {
+                    HashMap map = new HashMap();
+                    map.put("type", "initMessageActionSuccess");
+                    map.put("userId", mUserId);
+
+                    callOnData(map.toString());
+                }
+
+                @Override
+                public void onFailure(ErrorInfo errorInfo) {
+                    HashMap map = new HashMap();
+                    map.put("type", "initMessageActionFail");
+                    map.put("errorInfo", errorInfo.getErrorDescription());
+                    map.put("userId", mUserId);
+
+                    callOnData(map.toString());
+                }
+            });
         } catch (Exception e) {
             Log.e(MESSAGE_TAG, Log.getStackTraceString(e));
+            HashMap map = new HashMap();
+            map.put("type", "initMessageActionFail");
+            map.put("errorInfo", Log.getStackTraceString(e));
+            map.put("userId", mUserId);
+
+            callOnData(map.toString());
             throw new RuntimeException("NEED TO check rtc sdk init fatal error\n" + Log.getStackTraceString(e));
         }
     }
@@ -667,7 +705,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         });
     }
 
-    private String getToken(final Integer fromId, final String channelName) {
+    private String getToken(final String fromId, final String channelName) {
         final String[] result = {""};
         new Thread(new Runnable() {
             @Override
@@ -750,8 +788,10 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
     }
 
     private void joinChannel() {
-        String channelName = createChannel(mUserId);
-        String accessToken = getToken(Integer.parseInt(mUserId), channelName);
+        String channel = createChannel(mUserId);
+
+        channelName = channel;
+        String accessToken = getToken(mUserId, channelName);
 
 //        if (TextUtils.equals(accessToken, "") || TextUtils.equals())
         rtcEngine.setLogFilter(0x080f);

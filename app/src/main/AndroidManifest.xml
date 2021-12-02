@@ -12,6 +12,10 @@
         android:theme="@style/QMUI.Compat.NoActionBar">
 
         <activity android:name=".MainActivity">
+
+        </activity>
+
+        <activity android:theme="@style/AppTheme" android:name=".SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
