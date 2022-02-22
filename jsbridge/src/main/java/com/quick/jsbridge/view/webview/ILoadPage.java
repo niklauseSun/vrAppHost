@@ -106,7 +106,7 @@ public interface ILoadPage {
      * @param handler
      * @param error
      */
-    void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error);
+//    void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error);
 
     /**
      * 获取历史记录

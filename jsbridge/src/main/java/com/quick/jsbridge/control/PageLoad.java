@@ -232,11 +232,11 @@ public class PageLoad implements ILoadPage {
         cancelTimeKeeper();
     }
 
-    @Override
-    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-        //忽略证书错误
-        handler.proceed();
-    }
+//    @Override
+//    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+//        //忽略证书错误
+//        handler.proceed();
+//    }
 
     @Override
     public List<String> getHistoryUrl() {

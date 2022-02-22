@@ -1,5 +1,5 @@
-package com.quick.jsbridge.view;
-
+package com.vapp.android;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 
@@ -13,11 +13,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.bumptech.glide.Glide;
 import com.quick.core.baseapp.baseactivity.FrmBaseActivity;
 import com.quick.jsbridge.bean.QuickBean;
 import com.quick.jsbridge.control.AutoCallbackDefined;
 import com.quick.jsbridge.control.WebloaderControl;
+import com.quick.jsbridge.view.QuickFragment;
 
 
 import org.json.JSONArray;
@@ -27,11 +30,14 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
 import quick.com.jsbridge.R;
 
 
@@ -39,7 +45,8 @@ import quick.com.jsbridge.R;
  * Created by dailichun on 2017/12/7.
  * 如果需要自定义quick容器请继承QuickWebLoader，在布局文件中必须定义QuickFragment的容器FrameLayout控件
  */
-public class QuickWebLoader extends FrmBaseActivity {
+public class QuickLoader extends FrmBaseActivity implements EasyPermissions.PermissionCallbacks {
+    private static final int REQUEST_CODE_QRCODE_PERMISSIONS = 1;
 
     public QuickFragment fragment;
 
@@ -47,7 +54,7 @@ public class QuickWebLoader extends FrmBaseActivity {
 
     private Handler mHandler;
     private Handler handler;
-    private int timeCount = 5;
+    private int timeCount = 6;
     private Button countButton;
 
     private ImageView spImageView;
@@ -75,7 +82,8 @@ public class QuickWebLoader extends FrmBaseActivity {
 
 
         handlerPostDelayed();
-        handler.postDelayed(runnable, 5000);
+        handler.postDelayed(runnable, timeCount * 1000);
+        countButton.setVisibility(View.GONE);
 
         countButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,6 +94,7 @@ public class QuickWebLoader extends FrmBaseActivity {
                 spImageView.setVisibility(View.GONE);
                 handler.removeCallbacks(runnable);
                 mHandler.removeCallbacks(mRunnable);
+                requestCodeQRCodePermissions();
             }
         });
 
@@ -93,7 +102,9 @@ public class QuickWebLoader extends FrmBaseActivity {
         String guideUrl = share.getString("guideImage","");
         Log.i("guideUrl", guideUrl);
         if (!guideUrl.isEmpty()) {
-//            Glide.with(this).load(guideUrl).placeholder(R.drawable.bg_splash).error(R.drawable.bg_splash).into(spImageView);
+            Glide.with(this).load(guideUrl).placeholder(R.drawable.bg_splash).error(R.drawable.bg_splash).into(spImageView);
+//            Glide.with(this).load(R.drawable.bg_splash).into(spImageView);
+        } else {
             Glide.with(this).load(R.drawable.bg_splash).into(spImageView);
         }
 
@@ -191,7 +202,7 @@ public class QuickWebLoader extends FrmBaseActivity {
     }
 
     public static void go(Context context, QuickBean bean) {
-        Intent intent = new Intent(context, QuickWebLoader.class);
+        Intent intent = new Intent(context, com.quick.jsbridge.view.QuickWebLoader.class);
         intent.putExtra("bean", bean);
         context.startActivity(intent);
     }
@@ -282,6 +293,9 @@ public class QuickWebLoader extends FrmBaseActivity {
             String str = timeCount + "s";
             countButton.setText(str);
             handlerPostDelayed();
+            if (timeCount <= 5 && timeCount >= 0) {
+                countButton.setVisibility(View.VISIBLE);
+            }
         }
     };
     // handler+postDelayed 方式，反复发送延时消息
@@ -299,6 +313,27 @@ public class QuickWebLoader extends FrmBaseActivity {
 //            nomalInit(baseUrl);
             spImageView.setVisibility(View.GONE);
             countButton.setVisibility(View.GONE);
+            requestCodeQRCodePermissions();
+            mHandler.removeCallbacks(mRunnable);
         }
     };
+
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+
+    }
+
+    @AfterPermissionGranted(REQUEST_CODE_QRCODE_PERMISSIONS)
+    private void requestCodeQRCodePermissions() {
+        String [] perms = {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        if (!EasyPermissions.hasPermissions(this, perms)) {
+            EasyPermissions.requestPermissions(this, "扫描二维码需要打开相机和散光灯的权限", REQUEST_CODE_QRCODE_PERMISSIONS, perms);
+        }
+    }
 }
+

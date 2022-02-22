@@ -15,7 +15,7 @@
 
         </activity>
 
-        <activity android:theme="@style/AppTheme" android:name=".SplashActivity">
+        <activity android:theme="@style/Theme.AppCompat.Light.NoActionBar" android:name=".QuickLoader">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

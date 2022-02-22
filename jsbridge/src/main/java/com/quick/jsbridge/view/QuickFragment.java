@@ -107,6 +107,55 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
     private static final int PERMISSION_REQ_ID_RECORD_AUDIO = 22;
 
     /**
+     * 客服头像
+     */
+    private String bussinessHeadImage;
+    /**
+     * 客服身份码
+     */
+    private String bussinessIdentity;
+
+    /**
+     * 客服昵称
+     */
+    private String bussinessNickname;
+
+    /**
+     * 客服id
+     */
+    private String bussinessUid;
+
+    /**
+     * 客服手机号
+     */
+    private String bussinessAccid;
+
+    /**
+     * 客户头像
+     */
+    private String customerHeadImage;
+
+    /**
+     * 客户码
+     */
+    private String customerIdentity;
+
+    /**
+     * 客户昵称
+     */
+    private String customerNickname;
+
+    /**
+     * 客户id
+     */
+    private String customerUid;
+
+    /**
+     * 客户手机号
+     */
+    private String customerAccid;
+
+    /**
      * 声网监听
      */
     private final IRtcEngineEventHandler rtcEngineEventHandler = new IRtcEngineEventHandler() {
@@ -480,16 +529,49 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
             sendPeerMessage(message);
         }
 
+        @JavascriptInterface
+        public void sendUserInfo(String data) {
+            try {
+                JSONObject obj = new JSONObject(data);
+                if (obj.has("bussiness")) {
+                    JSONObject business = obj.getJSONObject("bussiness");
+                    bussinessHeadImage = business.getString("bussinessHeadImage");
+                    bussinessIdentity = business.getString("bussinessIdentity");
+                    bussinessNickname = business.getString("bussinessNickname");
+                    bussinessUid = business.getString("bussinessUid");
+                    bussinessAccid = business.getString("bussinessAccid");
+                    mPeerId = bussinessUid;
+                }
+
+                if (obj.has("modelUrl")) {
+                    modelURL = obj.getString("modelUrl");
+                }
+
+                if (obj.has("customer")) {
+                    JSONObject customer = obj.getJSONObject("customer");
+                    customerHeadImage = customer.getString("customerHeadImage");
+                    customerIdentity = customer.getString("customerIdentity");
+                    customerNickname = customer.getString("customerNickname");
+                    customerUid = customer.getString("customerUid");
+                    customerAccid = customer.getString("customerAccid");
+                    mUserId = customerUid;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
         // 获取用户信息
         @JavascriptInterface
         public String getUserInfo() {
             // 测试用信息，生产环境下请使用真实信息
             JSONObject customer = new JSONObject();
             try {
-                customer.put("customerHeadImage", "./images/default_avator.png");
-                customer.put("customerIdentity", "4");
-                customer.put("customerNickname", "小A");
-                customer.put("customerAccid", "15261805000");
+                customer.put("customerHeadImage", customerHeadImage);//"./images/default_avator.png"
+                customer.put("customerIdentity", customerIdentity);//"4"
+                customer.put("customerNickname", customerNickname);//"小A"
+                customer.put("customerUid", customerUid);//"1"
+                customer.put("customerAccid", customerAccid);//"15261805000"
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -497,10 +579,11 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
             JSONObject bussiness = new JSONObject();
             try {
-                bussiness.put("bussinessNickname", "小B");
-                bussiness.put("bussinessHeadImage", "./images/default_avator.png");
-                bussiness.put("bussinessIdentity", "3");
-                bussiness.put("bussinessAccid", "15261805001");
+                bussiness.put("bussinessHeadImage", bussinessHeadImage);//"./images/default_avator.png"
+                bussiness.put("bussinessIdentity", bussinessIdentity);//"3"
+                bussiness.put("bussinessNickname", bussinessNickname);//"小B"
+                bussiness.put("bussinessUid", bussinessUid);//"2"
+                bussiness.put("bussinessAccid", bussinessAccid);//"15261805001"
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -557,7 +640,24 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                 callData.put("roomid", Integer.parseInt(getUserId()));
                 callData.put("houseid", modelID);
                 callData.put("houseurl", modelURL);
-                callData.put("channelName", channelName);
+//                SharedPreferences pref = getSharedPreferences("data",MODE_PRIVATE);
+//                callData.put("channelName", pref.getString("channelName", ""));
+                callData.put("channelName", getUserId());
+
+                // 传送额外字段
+                // bussiness
+                callData.put("bussinessHeadImage", bussinessHeadImage);
+                callData.put("bussinessIdentity", bussinessIdentity);
+                callData.put("bussinessNickname", bussinessNickname);
+                callData.put("bussinessUid", bussinessUid);
+                callData.put("bussinessAccid", bussinessAccid);
+
+                // customer->从getUserId()方法获取
+                callData.put("customerHeadImage", customerHeadImage);
+                callData.put("customerIdentity", customerIdentity);
+                callData.put("customerNickname", customerNickname);
+                callData.put("customerUid", customerUid);
+                callData.put("customerAccid", customerAccid);
 
                 RtmMessage message = rtmClient.createMessage();
                 message.setText(callData.toString());
@@ -566,12 +666,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                 e.printStackTrace();
             }
         }
-
-//        @JavascriptInterface
-//        public void setHouseProfile(String modelId, String modelUrl) {
-//            modelID = modelId;
-//            modelURL = modelUrl;
-//        }
 
         @JavascriptInterface
         public void initMessageAction(String msg) {
@@ -595,37 +689,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
         }
 
-//        @JavascriptInterface
-//        public void joinChannelWithToken(String accessToken, String channelName) {
-//            rtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
-//            rtcEngine.setAudioProfile(Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY, Constants.AUDIO_SCENARIO_GAME_STREAMING);
-//            rtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
-//
-//            rtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
-//
-//            rtcEngine.joinChannel(accessToken, channelName, "", Integer.parseInt(mUserId));
-//
-//            Log.d(MESSAGE_TAG, "joinChannel >>> " + mUserId);
-//        }
-
-//        @JavascriptInterface
-//        public void joinChannelWithName(String channelName) {
-//            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
-//            joinChannelWithToken(accessToken, channelName);
-//        }
-
-//        @JavascriptInterface
-//        public void joinChannel() {
-//            String channelName = createChannel(mUserId);
-//            String accessToken = getToken(Integer.parseInt(mUserId), channelName);
-//            joinChannelWithToken(accessToken, channelName);
-//        }
-
-//        @JavascriptInterface
-//        public void leaveChannel() {
-//            rtcEngine.leaveChannel();
-//        }
-
         @JavascriptInterface
         public void testJs() {
             Toast.makeText(getContext() , "testJS", Toast.LENGTH_SHORT).show();
@@ -633,7 +696,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
         @JavascriptInterface
         public void jumpToWebView(String url) {
-//            String url = "https://www.baidu.com";
             Intent intent = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.setPackage("com.android.chrome");
@@ -649,8 +711,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
     }
 
     private String getUserId() {
-//        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
-//        String uId = sharedPreferences.getString("userId" , "");
         return mUserId;
     }
 
@@ -663,7 +723,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                     HashMap map = new HashMap();
                     map.put("type", "initMessageActionSuccess");
                     map.put("userId", mUserId);
-
                     callOnData(map.toString());
                 }
 
@@ -792,16 +851,10 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
         channelName = channel;
         String accessToken = getToken(mUserId, channelName);
-
-//        if (TextUtils.equals(accessToken, "") || TextUtils.equals())
         rtcEngine.setLogFilter(0x080f);
-
         String ts = new SimpleDateFormat("yyyyMMdd").format(new Date());
         String filePath = "/sdcard/" + ts + ".log";
-        File file = new File(filePath);
-
         rtcEngine.setLogFile(filePath);
-
         rtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
         rtcEngine.setAudioProfile(Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY, Constants.AUDIO_SCENARIO_GAME_STREAMING);
         rtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
@@ -809,12 +862,13 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         rtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
 
         rtcEngine.joinChannel(accessToken, channelName, "", Integer.parseInt(mUserId));
-
         Log.d(MESSAGE_TAG, "joinChannel >>> " + mUserId);
     }
 
     private void leaveChannel() {
-        rtcEngine.leaveChannel();
+        if (rtcEngine != null) {
+            rtcEngine.leaveChannel();
+        }
     }
 
     private void onRemoteUserLeft(int uid, int reason) {

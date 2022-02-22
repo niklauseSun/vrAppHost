@@ -26,6 +26,7 @@ import com.vapp.android.activitys.CallActivity;
 import com.vapp.android.activitys.MessageSend;
 import com.silversea.activity.LoginActivity;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -66,11 +67,11 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (BuildConfig.DEBUG) {
-            nomalInit("http://10.12.254.140:8080/");
-        } else {
+//        if (BuildConfig.DEBUG) {
+//            nomalInit("http://10.12.254.97:8080/");
+//        } else {
             requestBaseUrl();
-        }
+//        }
 //        testInit();
         pageControl.getNbBar().hide();
     }
@@ -93,7 +94,7 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
 
     private void compareUrl(String newUrl) {
         SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
-        String oldUrl = sharedPreferences.getString("url","https://m.mspace.com.sg/mobile/");
+        String oldUrl = sharedPreferences.getString("url","https://m.mspace.com.sg/mobile/pages/client/home");
         pageControl.getNbBar().hide();
 
         if (!newUrl.equals(oldUrl)) {
@@ -123,8 +124,6 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         defaultButton = findViewById(R.id.defaultButton);
         prevButton = findViewById(R.id.prevButton);
         scanButton = findViewById(R.id.scan_button);
-//        callTest = findViewById(R.id.goToCall);
-//        goToMessageButton = findViewById(R.id.goToMessage);
         selectImageButton = findViewById(R.id.selectImage);
         showImage = findViewById(R.id.showImage);
         jumpToShowVr = findViewById(R.id.jumpToShowVr);
@@ -165,24 +164,6 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
             }
         });
 
-//        callTest.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent mintent = new Intent(MainActivity.this, CallActivity.class);
-//
-//                startActivity(mintent);
-//            }
-//        });
-
-//        goToMessageButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent mintent = new Intent(MainActivity.this, MessageSend.class);
-//
-//                startActivity(mintent);
-//            }
-//        });
-
         selectImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -202,9 +183,6 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
             public void onClick(View view) {
                 Intent mIntent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(mIntent);
-
-//                String url = "https://beyond.3dnest.biz/silversea_dev/takelook/?m=7051c064_o0fM_b6f9";
-//                jumpToWebView(mContext, url);
             }
         });
     }
@@ -265,11 +243,7 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         QuickBean bean = new QuickBean(url);
         mintent.putExtra("bean", bean);
         startActivity(mintent);
-
         requestCodeQRCodePermissions();
-//        Intent starter = new Intent(context, VWebView.class);
-//        starter.putExtra("loadUrl", url);
-//        startActivity(starter);
     }
 
     private static String pattern = "^([hH][tT]{2}[pP]://|[hH][tT]{2}[pP][sS]://)(([A-Za-z0-9-~]+).)+([A-Za-z0-9-~\\/])+$";
@@ -328,25 +302,45 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
     }
 
     private void requestBaseUrl() {
-
         new Thread(new Runnable(){
             @Override
             public void run() {
                 // Do network action in this function
-                String url = "https://jiance.99rongle.com/prod-api/mate-component/config/get-h5-url";
+//                String url = "https://jiance.99rongle.com/prod-api/mate-component/config/get-h5-url";
+                String url = "https://console.mspace.com.sg/prod-api/mate-system/dict/list-value?code=appconf";
                 OkHttpClient client = new OkHttpClient().newBuilder()
                         .readTimeout(60, TimeUnit.SECONDS) // 设置读取超时时间
                         .writeTimeout(60, TimeUnit.SECONDS) // 设置写的超时时间
                         .connectTimeout(60, TimeUnit.SECONDS) // 设置连接超时时间
                         .build();
-                RequestBody body = RequestBody.create("", JSON);
-                Request request = new Request.Builder().url(url).post(body).build();
+                Request request = new Request.Builder().url(url).get().build();
                 Log.i("test", "requestBaseUrl");
                 try (Response response= client.newCall(request).execute()) {
                     JSONObject obj = new JSONObject(response.body().string());
-                    String st = obj.optString("data");
-                    Log.e("download url", st);
-                    compareUrl(st);
+                    Log.i("test", obj.toString());
+                    JSONArray array = obj.optJSONArray("data");
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject st = array.getJSONObject(i);
+                        String dictKey = st.optString("dictKey");
+                        String dictValue = st.optString("dictValue");
+
+                        if (dictKey.equals("home")) {
+                            compareUrl(dictValue);
+                        } else if (dictKey.equals("guide")) {
+                            // 更改guide
+                            //步骤1：创建一个SharedPreferences对象
+                            SharedPreferences share = getSharedPreferences("data", Context.MODE_PRIVATE);
+                            //步骤2： 实例化SharedPreferences.Editor对象
+                            SharedPreferences.Editor editor = share.edit();
+                            //步骤3：将获取过来的值放入文件
+                            editor.putString("guideImage", dictValue);
+                            //步骤4：提交
+                            editor.commit();
+                        }
+
+                        Log.i("key", dictKey);
+                        Log.i("value", dictValue);
+                    }
                 } catch (Exception e) {
                     Log.i("test", "test");
                     e.printStackTrace();

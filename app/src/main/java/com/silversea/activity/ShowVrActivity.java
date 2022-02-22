@@ -705,7 +705,9 @@ public void onLocalAudioMuteClicked(View view) {
 
     // Tutorial Step 3
     private void leaveChannel() {
-        mRtcEngine.leaveChannel();
+        if (mRtcEngine != null) {
+            mRtcEngine.leaveChannel();
+        }
     }
 
     // Tutorial Step 4

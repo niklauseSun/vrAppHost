@@ -115,6 +115,7 @@ public class QuickWebviewClient extends WebViewClient {
     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             String url = request.getUrl().toString();
+            Log.e("load Url", url);
 
             if (url.startsWith("weixin://wap/pay?")) {
 
@@ -128,6 +129,10 @@ public class QuickWebviewClient extends WebViewClient {
 
                 return true;
 
+            }
+
+            if (url.startsWith("baiduboxlite") || url.startsWith("baiduboxapp")) {
+                return true;
             }
 
             if (request.isRedirect()) {
@@ -214,10 +219,10 @@ public class QuickWebviewClient extends WebViewClient {
      * @param handler
      * @param error
      */
-    @Override
-    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-        loadPage.onReceivedSslError(view, handler, error);
-    }
+//    @Override
+//    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+//        loadPage.onReceivedSslError(view, handler, error);
+//    }
 
     /**
      * 更新页面访问历史记录
