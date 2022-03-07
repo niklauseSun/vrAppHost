@@ -188,7 +188,7 @@ public class SplashActivity extends FrmBaseActivity implements EasyPermissions.P
 
                         if (dictKey.equals("home")) {
                             compareUrl(dictValue);
-                        } else if (dictKey.equals("guide")) {
+                        } else if (dictKey.equals("pic")) {
                             // 更改guide
                             //步骤1：创建一个SharedPreferences对象
                             SharedPreferences share = getSharedPreferences("data", Context.MODE_PRIVATE);

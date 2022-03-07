@@ -48,6 +48,8 @@ import quick.com.jsbridge.R;
 public class QuickLoader extends FrmBaseActivity implements EasyPermissions.PermissionCallbacks {
     private static final int REQUEST_CODE_QRCODE_PERMISSIONS = 1;
 
+    private String baseRequestUrl = "https://console.mspaco.com.sg/prod-api/mate-system/dict/list-value?code=appconf";
+
     public QuickFragment fragment;
 
     public QuickBean bean;
@@ -216,13 +218,12 @@ public class QuickLoader extends FrmBaseActivity implements EasyPermissions.Perm
         new Thread(new Runnable(){
             @Override
             public void run() {
-                String url = "https://console.mspace.com.sg/prod-api/mate-system/dict/list-value?code=appconf";
                 OkHttpClient client = new OkHttpClient().newBuilder()
                         .readTimeout(60, TimeUnit.SECONDS) // 设置读取超时时间
                         .writeTimeout(60, TimeUnit.SECONDS) // 设置写的超时时间
                         .connectTimeout(60, TimeUnit.SECONDS) // 设置连接超时时间
                         .build();
-                Request request = new Request.Builder().url(url).get().build();
+                Request request = new Request.Builder().url(baseRequestUrl).get().build();
                 Log.i("test", "requestBaseUrl");
                 try (Response response= client.newCall(request).execute()) {
                     JSONObject obj = new JSONObject(response.body().string());
@@ -235,7 +236,7 @@ public class QuickLoader extends FrmBaseActivity implements EasyPermissions.Perm
 
                         if (dictKey.equals("home")) {
                             compareUrl(dictValue);
-                        } else if (dictKey.equals("guide")) {
+                        } else if (dictKey.equals("pic")) {
                             // 更改guide
                             //步骤1：创建一个SharedPreferences对象
                             SharedPreferences share = getSharedPreferences("data", Context.MODE_PRIVATE);
@@ -308,9 +309,6 @@ public class QuickLoader extends FrmBaseActivity implements EasyPermissions.Perm
         public void run() {
             // TODO Auto-generated method stub
             //要做的事情，这里再次调用此Runnable对象，以实现每两秒实现一次的定时器操作
-//            SharedPreferences share = getSharedPreferences("data", Context.MODE_PRIVATE);
-//            String baseUrl = share.getString("baseReqUrl", "https://m.mspace.com.sg/mobile/pages/client/home");
-//            nomalInit(baseUrl);
             spImageView.setVisibility(View.GONE);
             countButton.setVisibility(View.GONE);
             requestCodeQRCodePermissions();
