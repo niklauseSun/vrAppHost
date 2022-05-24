@@ -29,4 +29,6 @@
     <string name="message_cached">消息已被服务器缓存</string>
     <string name="reconnecting">正在尝试重连...</string>
     <string name="account_offline">连接断开，请重试登录</string>
+    <string name="connected">连接成功</string>
+    <string name="disconnect">断开连接</string>
 </resources>

@@ -21,6 +21,7 @@ import com.quick.jsbridge.bean.QuickBean;
 import com.quick.jsbridge.control.AutoCallbackDefined;
 import com.quick.jsbridge.control.WebloaderControl;
 import com.quick.jsbridge.view.QuickFragment;
+import com.tencent.bugly.crashreport.CrashReport;
 
 
 import org.json.JSONArray;
@@ -68,7 +69,9 @@ public class QuickLoader extends FrmBaseActivity implements EasyPermissions.Perm
         //隐藏Activity的导航栏
         pageControl.getNbBar().hide();
 
-//        initQuickBean(savedInstanceState);
+        CrashReport.initCrashReport(getApplicationContext(), "7584f700e5", false);
+
+
         requestBaseUrl();
 
         setContentView(R.layout.quick_activity);
