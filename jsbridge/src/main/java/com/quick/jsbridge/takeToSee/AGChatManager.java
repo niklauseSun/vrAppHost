@@ -28,7 +28,7 @@ public class AGChatManager {
     public AGChatManager(Context context) { mContext = context; }
 
     public void init() {
-        String appId = "511767b5f6974accbae15e9022518589";
+        String appId = "3dc9b22d18a8405ea10efc0fcc2054d7";
 
         try {
             rtmClient = RtmClient.createInstance(mContext, appId, new RtmClientListener() {

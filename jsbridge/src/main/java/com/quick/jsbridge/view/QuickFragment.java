@@ -14,6 +14,8 @@ import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.donkingliang.imageselector.utils.ImageSelector;
 import com.quick.core.baseapp.baseactivity.FrmBaseFragment;
 import com.quick.core.baseapp.baseactivity.control.PageControl;
@@ -39,6 +41,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -66,7 +69,7 @@ import quick.com.jsbridge.R;
  * Created by dailichun on 2017/12/7.
  * quick的fragment容器，如果要加载H5页面请使用{@link QuickWebLoader}
  */
-public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
+public class QuickFragment extends FrmBaseFragment implements IQuickFragment, EasyPermissions.PermissionCallbacks {
 
     private String modelID = "7051c064_o0fM_b6f9";
     private String modelURL = "https://beyond.3dnest.biz/silversea_dev/takelook/?m="+modelID;
@@ -210,6 +213,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        Log.i("test","fff");
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
@@ -369,17 +373,17 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         logoutAndLeaveChannel();
         RtcEngine.destroy();
 
-        rtmClient.logout(new ResultCallback<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                updateUserStatus(100);
-            }
-
-            @Override
-            public void onFailure(ErrorInfo errorInfo) {
-
-            }
-        });
+//        rtmClient.logout(new ResultCallback<Void>() {
+//            @Override
+//            public void onSuccess(Void unused) {
+//                updateUserStatus(100);
+//            }
+//
+//            @Override
+//            public void onFailure(ErrorInfo errorInfo) {
+//
+//            }
+//        });
         updateUserStatus(100);
         rtmClient.release();
     }
@@ -433,6 +437,19 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         Map<String, Object> object = new HashMap<>();
         object.put("keyword", keyWord);
         control.autoCallbackEvent.onSearch(object);
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+        Log.i("requestCode", requestCode + "");
+        if (requestCode == PERMISSION_REQ_ID_RECORD_AUDIO) {
+            leaveChannel();
+        }
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+
     }
 
     /**
@@ -549,9 +566,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                         customerNickname = jsonObject.getString("customerNickName");
                     }
                     bussinessUid = businessId;
-                    joinChannelWithUid(mUserId, businessId);
                     updateBUid(rtmMessage.getText());
-                    isAccept();
                 } else if (jsonObject.has("type")
                         && jsonObject.getString("type").equals("accept")) {
                     String businessId = jsonObject.getString("bussinessUid");
@@ -608,7 +623,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
 
     // 用于JS调用Native
-    public class JavaScriptInterface {
+    public class JavaScriptInterface implements EasyPermissions.PermissionCallbacks {
         // 传输数据
         @JavascriptInterface
         public void sendData(String data) {
@@ -820,8 +835,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                 String[] perms = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
                 if (EasyPermissions.hasPermissions(getContext(), perms)) {
                     loginRtm();
-//                    initAgoraEngineAndJoinChannel();
-//                    joinChannel();
                 } else {
                     EasyPermissions.requestPermissions(getActivity(),"请求语音权限进行通话",PERMISSION_REQ_ID_RECORD_AUDIO, perms);
                 }
@@ -835,7 +848,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
             Log.i("mute", "fff");
             rtcEngine.muteLocalAudioStream(true);
             // 对对方静音
-//            rtcEngine.setEnableSpeakerphone(false);
         }
 
         @JavascriptInterface
@@ -862,8 +874,10 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         @JavascriptInterface
         public void accept() {
             // 调用推送音频
+            joinChannelWithUid(mUserId, bussinessUid);
             callUpdateChatStatus("3", null);
             Log.d(MESSAGE_TAG,"accept---真正接听");
+            isAccept();
         }
 
         @JavascriptInterface
@@ -930,6 +944,24 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
             }
         }
+
+        private void sendAcceptStatus() {
+
+        }
+
+        @Override
+        public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+            Log.i("onPermissionsGranted", "fff");
+        }
+
+        @Override
+        public void onPermissionsDenied(int requestCode, @NonNull List<String> perms) {
+            Log.i("onPermissionsDenied", "fff");
+        }
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        }
     }
 
     private String getUserId() {
@@ -966,7 +998,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
 
             Log.i("update uid", mUserId);
             Log.i("update pid", mPeerId);
-            joinChannelWithUid(mUserId, bussinessUid);
+//            joinChannelWithUid(mUserId, bussinessUid);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1000,70 +1032,19 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
         String filePath = "/sdcard/" + ts + "/agorartm.log";
         rtmClient.setLogFile(filePath);
 
-//        SharedPreferences sp = getActivity().getSharedPreferences("rtmToken", Context.MODE_PRIVATE);
-//        String token = sp.getString("token", "");
-//        Long getTime = sp.getLong("tokenTime", 0);
-//
-//        if (!token.isEmpty()) {
-//            Long currentTime = new Date().getTime();
-//
-//            if ((currentTime - getTime)/ 1000 / 60 <= 60) {
-//                // token 还在有效期内
-//            } else {
-//                // token不在有效期内
-//
-//            }
-//        }
+        SharedPreferences sp = getActivity().getSharedPreferences("rtmToken", Context.MODE_PRIVATE);
+        final String token = sp.getString("token", "");
+        Long getTime = sp.getLong("tokenTime",0);
 
-        try {
-            rtmClient.logout(new ResultCallback<Void>() {
-                @Override
-                public void onSuccess(Void unused) {
-                    Log.i("logout", "success");
-                    final String loginToken = getMessageToken(mUserId);
-                    Log.i("login Token", loginToken);
-                    Log.i("login userId", mUserId);
+        if (!token.isEmpty()) {
+            Long currentTime = new Date().getTime();
 
-                    Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
-                                @Override
-                                public void onSuccess(Void unused) {
-                                    HashMap map = new HashMap();
-                                    map.put("type", "initMessageActionSuccess");
-                                    map.put("userId", mUserId);
-                                    callOnData(new JSONObject(map).toString());
-                                    Log.i("init", "login success");
-                                    updateUserStatus(101);
-                                }
-
-                                @Override
-                                public void onFailure(ErrorInfo errorInfo) {
-                                    HashMap map = new HashMap();
-                                    map.put("type", "initMessageActionFail");
-                                    map.put("errorInfo", errorInfo.getErrorDescription());
-                                    map.put("userId", mUserId);
-
-                                    callOnData(new JSONObject(map).toString());
-                                    Log.i("init", "login fail");
-                                    updateUserStatus(100);
-                                }
-                            });
-                        }
-                    }, 4000);
-
-
-                }
-
-                @Override
-                public void onFailure(ErrorInfo errorInfo) {
-                    Log.i("logout", "fail");
-                    String loginToken = getMessageToken(mUserId);
-                    Log.i("login Token", loginToken);
-                    Log.i("login userId", mUserId);
-                    rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
+            if ((currentTime - getTime)/ 1000 / 60 <= 60) {
+                // token 还在有效期内
+//                String loginToken = getMessageToken(mUserId);
+//                    Log.i("login Token", loginToken);
+//                    Log.i("login userId", mUserId);
+                    rtmClient.login(token, mUserId, new ResultCallback<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
                             HashMap map = new HashMap();
@@ -1080,25 +1061,144 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment {
                             map.put("type", "initMessageActionFail");
                             map.put("errorInfo", errorInfo.getErrorDescription());
                             map.put("userId", mUserId);
-
                             callOnData(new JSONObject(map).toString());
                             Log.i("init", "login fail");
-                            updateUserStatus(100);
+//                            updateUserStatus(100);
+
+//                            if (errorInfo.getErrorCode() == 4) {
+                                loginWithToken();
+//                            }
                         }
                     });
-                }
-            });
-
-        } catch (Exception e) {
-            Log.e(MESSAGE_TAG, Log.getStackTraceString(e));
-            HashMap map = new HashMap();
-            map.put("type", "initMessageActionFail");
-            map.put("errorInfo", Log.getStackTraceString(e));
-            map.put("userId", mUserId);
-
-            callOnData(new JSONObject(map).toString());
-            throw new RuntimeException("NEED TO check rtc sdk init fatal error\n" + Log.getStackTraceString(e));
+            } else {
+                // token不在有效期内
+                loginWithToken();
+            }
+        } else {
+            loginWithToken();
         }
+
+//        try {
+//            rtmClient.logout(new ResultCallback<Void>() {
+//                @Override
+//                public void onSuccess(Void unused) {
+//                    Log.i("logout", "success");
+//                    final String loginToken = getMessageToken(mUserId);
+//                    Log.i("login Token", loginToken);
+//                    Log.i("login userId", mUserId);
+//
+//                    Handler handler = new Handler();
+//                    handler.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
+//                                @Override
+//                                public void onSuccess(Void unused) {
+//                                    HashMap map = new HashMap();
+//                                    map.put("type", "initMessageActionSuccess");
+//                                    map.put("userId", mUserId);
+//                                    callOnData(new JSONObject(map).toString());
+//                                    Log.i("init", "login success");
+//                                    updateUserStatus(101);
+//                                }
+//
+//                                @Override
+//                                public void onFailure(ErrorInfo errorInfo) {
+//                                    HashMap map = new HashMap();
+//                                    map.put("type", "initMessageActionFail");
+//                                    map.put("errorInfo", errorInfo.getErrorDescription());
+//                                    map.put("userId", mUserId);
+//
+//                                    callOnData(new JSONObject(map).toString());
+//                                    Log.i("init", "login fail");
+//                                    updateUserStatus(100);
+//                                }
+//                            });
+//                        }
+//                    }, 4000);
+//
+//
+//                }
+//
+//                @Override
+//                public void onFailure(ErrorInfo errorInfo) {
+//                    Log.i("logout", "fail");
+//                    String loginToken = getMessageToken(mUserId);
+//                    Log.i("login Token", loginToken);
+//                    Log.i("login userId", mUserId);
+//                    rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
+//                        @Override
+//                        public void onSuccess(Void unused) {
+//                            HashMap map = new HashMap();
+//                            map.put("type", "initMessageActionSuccess");
+//                            map.put("userId", mUserId);
+//                            callOnData(new JSONObject(map).toString());
+//                            Log.i("init", "login success");
+//                            updateUserStatus(101);
+//                        }
+//
+//                        @Override
+//                        public void onFailure(ErrorInfo errorInfo) {
+//                            HashMap map = new HashMap();
+//                            map.put("type", "initMessageActionFail");
+//                            map.put("errorInfo", errorInfo.getErrorDescription());
+//                            map.put("userId", mUserId);
+//
+//                            callOnData(new JSONObject(map).toString());
+//                            Log.i("init", "login fail");
+//                            updateUserStatus(100);
+//                        }
+//                    });
+//                }
+//            });
+//
+//        } catch (Exception e) {
+//            Log.e(MESSAGE_TAG, Log.getStackTraceString(e));
+//            HashMap map = new HashMap();
+//            map.put("type", "initMessageActionFail");
+//            map.put("errorInfo", Log.getStackTraceString(e));
+//            map.put("userId", mUserId);
+//
+//            callOnData(new JSONObject(map).toString());
+//            throw new RuntimeException("NEED TO check rtc sdk init fatal error\n" + Log.getStackTraceString(e));
+//        }
+    }
+
+    private void loginWithToken() {
+        final String loginToken = getMessageToken(mUserId);
+        Log.i("login Token", loginToken);
+        Log.i("login userId", mUserId);
+        rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                HashMap map = new HashMap();
+                map.put("type", "initMessageActionSuccess");
+                map.put("userId", mUserId);
+                callOnData(new JSONObject(map).toString());
+                Log.i("init", "login success");
+                updateUserStatus(101);
+                saveToken(loginToken);
+            }
+
+            @Override
+            public void onFailure(ErrorInfo errorInfo) {
+                HashMap map = new HashMap();
+                map.put("type", "initMessageActionFail");
+                map.put("errorInfo", errorInfo.getErrorDescription());
+                map.put("userId", mUserId);
+
+                callOnData(new JSONObject(map).toString());
+                Log.i("init", "login fail");
+//                updateUserStatus(100);
+            }
+        });
+    }
+
+    private void saveToken(String token) {
+        SharedPreferences.Editor edit = getActivity().getSharedPreferences("rtmToken", Context.MODE_PRIVATE).edit();
+        edit.putString("token", token);
+        edit.putLong("tokenTime", new Date().getTime());
+        edit.commit();
     }
 
     private void sendPeerMessage(final RtmMessage message) {
