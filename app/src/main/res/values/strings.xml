@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">M.Spaco</string>
+    <string name="app_name">M.Spaco TEST</string>
 
     <string name="str_login">Login</string>
     <string name="str_account">Account</string>
     <string name="account_empty">Account can not be empty</string>
     <string name="account_too_long">Account can not exceed 64 characters</string>
-    <string name="account_starts_with_space">Account can not starts with space</string>
+    <string name="account_starts_with_space">Acconagunt can not starts with space</string>
     <string name="account_literal_null">Account can not be \"null\"</string>
     <string name="login_failed">Login failed</string>
 

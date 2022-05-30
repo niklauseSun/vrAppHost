@@ -5,7 +5,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.mcc.mspaco"
+        applicationId "com.mcc.mspaco.TEST"
         minSdkVersion 27
         targetSdkVersion 30
         versionCode 15

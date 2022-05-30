@@ -1240,7 +1240,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                             , jsonParams);
 
                     Request request = new Request.Builder()
-                            .url("https://console.mspaco.com.sg/prod-api/mall-daogou/vragora/token")
+                            .url("https://console.mspace.com.sg/prod-api/mall-daogou/vragora/token")
                             .post(body)//传递请求体
                             .build();
                     Response response = null;
@@ -1341,7 +1341,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                             , jsonParams);
 
                     Request request = new Request.Builder()
-                            .url("https://console.mspaco.com.sg/prod-api/mall-daogou/vragora/rtm-token")
+                            .url("https://console.mspace.com.sg/prod-api/mall-daogou/vragora/rtm-token")
                             .post(body)//传递请求体
                             .build();
                     Response response = null;
@@ -1468,7 +1468,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                             , jsonParams);
 
                     Request request = new Request.Builder()
-                            .url("https://console.mspaco.com.sg/prod-api/mall-daogou/customer_status/status")
+                            .url("https://console.mspace.com.sg/prod-api/mall-daogou/customer_status/status")
                             .post(body)//传递请求体
                             .build();
                     Response response = null;

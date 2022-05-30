@@ -49,7 +49,7 @@ import quick.com.jsbridge.R;
 public class QuickLoader extends FrmBaseActivity implements EasyPermissions.PermissionCallbacks {
     private static final int REQUEST_CODE_QRCODE_PERMISSIONS = 1;
 
-    private String baseRequestUrl = "https://console.mspaco.com.sg/prod-api/mate-system/dict/list-value?code=appconf";
+    private String baseRequestUrl = "https://console.mspace.com.sg//prod-api/mate-system/dict/list-value?code=appconf";
 
     public QuickFragment fragment;
 
