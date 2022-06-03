@@ -367,23 +367,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
     public void onDestroyView() {
         control.onDestroy();
         super.onDestroyView();
-
-        Log.i("onDestroy", "ddd");
-
         logoutAndLeaveChannel();
-        RtcEngine.destroy();
-
-//        rtmClient.logout(new ResultCallback<Void>() {
-//            @Override
-//            public void onSuccess(Void unused) {
-//                updateUserStatus(100);
-//            }
-//
-//            @Override
-//            public void onFailure(ErrorInfo errorInfo) {
-//
-//            }
-//        });
         updateUserStatus(100);
         rtmClient.release();
     }
@@ -907,7 +891,8 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         }
 
         @JavascriptInterface
-        public void logout() {
+        public void logout(String data) {
+            Log.i("test logout from web", data);
             rtmClient.logout(new ResultCallback<Void>() {
                 @Override
                 public void onSuccess(Void unused) {
@@ -919,7 +904,11 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
 
                 }
             });
-            logoutAndLeaveChannel();
+            if (rtcEngine != null) {
+                rtcEngine.leaveChannel();
+            }
+            rtcEngine = null;
+            rtmClient.release();
         }
 
         @JavascriptInterface
@@ -1496,7 +1485,10 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
     }
 
     private void logoutAndLeaveChannel() {
-        leaveChannel();
+//        leaveChannel();
+        if (rtcEngine != null) {
+            rtcEngine.leaveChannel();
+        }
         rtcEngine = null;
         RtcEngine.destroy();
     }
