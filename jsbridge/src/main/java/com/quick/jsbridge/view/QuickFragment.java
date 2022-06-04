@@ -490,7 +490,11 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                     // 临时通过消息接收主叫方挂断电话
                     // 对方挂断，更新界面
                     callUpdateChatStatus("8", null);
-                    logoutAndLeaveChannel();
+//                    logoutAndLeaveChannel();
+                    if (rtcEngine != null) {
+                        rtcEngine.leaveChannel();
+                    }
+                    updateUserStatusWithId(101, bussinessUid);
                 } else if (jsonObject.has("type")
                     && jsonObject.getString("type").equals("app-hangup")
                 ) {
@@ -754,7 +758,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
             Log.d(MESSAGE_TAG, "hangup() ");
             // 退出语音
             leaveChannel();
-            rtcEngine = null;
+//            rtcEngine = null;
             // 更新界面
             callUpdateChatStatus("7", null);
             // 通知对方
@@ -1202,8 +1206,8 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
             @Override
             public void onFailure(ErrorInfo errorInfo) {
                 final String errDes = errorInfo.getErrorDescription();
-               Log.d(MESSAGE_TAG, "seedPeerMessage >>> fail == " + errDes);
-               Toast.makeText(getContext(), "对方未登录！", Toast.LENGTH_SHORT).show();
+                Log.d(MESSAGE_TAG, "seedPeerMessage >>> fail == " + errDes);
+                Toast.makeText(getContext(), "Customer service is unreachable now, please call again later.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -1489,7 +1493,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         if (rtcEngine != null) {
             rtcEngine.leaveChannel();
         }
-        rtcEngine = null;
         RtcEngine.destroy();
     }
 
