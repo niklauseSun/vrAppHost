@@ -367,23 +367,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
     public void onDestroyView() {
         control.onDestroy();
         super.onDestroyView();
-
-        Log.i("onDestroy", "ddd");
-
         logoutAndLeaveChannel();
-        RtcEngine.destroy();
-
-//        rtmClient.logout(new ResultCallback<Void>() {
-//            @Override
-//            public void onSuccess(Void unused) {
-//                updateUserStatus(100);
-//            }
-//
-//            @Override
-//            public void onFailure(ErrorInfo errorInfo) {
-//
-//            }
-//        });
         updateUserStatus(100);
         rtmClient.release();
     }
@@ -506,7 +490,11 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                     // 临时通过消息接收主叫方挂断电话
                     // 对方挂断，更新界面
                     callUpdateChatStatus("8", null);
-                    logoutAndLeaveChannel();
+//                    logoutAndLeaveChannel();
+                    if (rtcEngine != null) {
+                        rtcEngine.leaveChannel();
+                    }
+                    updateUserStatusWithId(101, bussinessUid);
                 } else if (jsonObject.has("type")
                     && jsonObject.getString("type").equals("app-hangup")
                 ) {
@@ -770,7 +758,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
             Log.d(MESSAGE_TAG, "hangup() ");
             // 退出语音
             leaveChannel();
-            rtcEngine = null;
+//            rtcEngine = null;
             // 更新界面
             callUpdateChatStatus("7", null);
             // 通知对方
@@ -907,7 +895,8 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         }
 
         @JavascriptInterface
-        public void logout() {
+        public void logout(String data) {
+            Log.i("test logout from web", data);
             rtmClient.logout(new ResultCallback<Void>() {
                 @Override
                 public void onSuccess(Void unused) {
@@ -919,7 +908,11 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
 
                 }
             });
-            logoutAndLeaveChannel();
+            if (rtcEngine != null) {
+                rtcEngine.leaveChannel();
+            }
+            rtcEngine = null;
+            rtmClient.release();
         }
 
         @JavascriptInterface
@@ -1016,7 +1009,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
             rtcEngine = RtcEngine.create(getContext(), getString(R.string.agora_app_id), rtcEngineEventHandler);
             rtcEngine.setLogFilter(0x0f);
             String ts = new SimpleDateFormat("yyyyMMdd").format(new Date());
-            String filePath = "/sdcard/" + ts + "/agorartm.log";
+            String filePath = "/sdcard/" + ts + "/agorartc.log";
             rtcEngine.setLogFile(filePath);
         } catch (Exception e) {
             e.printStackTrace();
@@ -1213,8 +1206,8 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
             @Override
             public void onFailure(ErrorInfo errorInfo) {
                 final String errDes = errorInfo.getErrorDescription();
-               Log.d(MESSAGE_TAG, "seedPeerMessage >>> fail == " + errDes);
-               Toast.makeText(getContext(), "对方未登录！", Toast.LENGTH_SHORT).show();
+                Log.d(MESSAGE_TAG, "seedPeerMessage >>> fail == " + errDes);
+                Toast.makeText(getContext(), "Customer service is unreachable now, please call again later.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -1496,8 +1489,10 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
     }
 
     private void logoutAndLeaveChannel() {
-        leaveChannel();
-        rtcEngine = null;
+//        leaveChannel();
+        if (rtcEngine != null) {
+            rtcEngine.leaveChannel();
+        }
         RtcEngine.destroy();
     }
 
