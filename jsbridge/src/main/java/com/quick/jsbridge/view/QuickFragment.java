@@ -1009,7 +1009,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
             rtcEngine = RtcEngine.create(getContext(), getString(R.string.agora_app_id), rtcEngineEventHandler);
             rtcEngine.setLogFilter(0x0f);
             String ts = new SimpleDateFormat("yyyyMMdd").format(new Date());
-            String filePath = "/sdcard/" + ts + "/agorartm.log";
+            String filePath = "/sdcard/" + ts + "/agorartc.log";
             rtcEngine.setLogFile(filePath);
         } catch (Exception e) {
             e.printStackTrace();
