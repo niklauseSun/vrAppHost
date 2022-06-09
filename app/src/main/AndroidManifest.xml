@@ -11,11 +11,11 @@
         android:supportsRtl="true"
         android:theme="@style/QMUI.Compat.NoActionBar">
 
-        <activity android:name=".MainActivity">
+<!--        <activity android:name=".MainActivity">-->
 
-        </activity>
+<!--        </activity>-->
 
-        <activity android:theme="@style/Theme.AppCompat.Light.NoActionBar" android:name=".QuickLoader">
+        <activity android:theme="@style/Theme.AppCompat.Light.NoActionBar" android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

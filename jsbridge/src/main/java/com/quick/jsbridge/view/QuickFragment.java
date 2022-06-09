@@ -896,7 +896,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
 
         @JavascriptInterface
         public void logout(String data) {
-            Log.i("test logout from web", data);
             rtmClient.logout(new ResultCallback<Void>() {
                 @Override
                 public void onSuccess(Void unused) {
@@ -905,14 +904,12 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
 
                 @Override
                 public void onFailure(ErrorInfo errorInfo) {
-
+                    Toast.makeText(getContext(), errorInfo.getErrorDescription(), Toast.LENGTH_SHORT).show();
                 }
             });
             if (rtcEngine != null) {
                 rtcEngine.leaveChannel();
             }
-            rtcEngine = null;
-            rtmClient.release();
         }
 
         @JavascriptInterface

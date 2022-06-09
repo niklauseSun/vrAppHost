@@ -70,10 +70,10 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
 //        if (BuildConfig.DEBUG) {
 //            nomalInit("http://10.12.254.97:8080/");
 //        } else {
-            requestBaseUrl();
+//            requestBaseUrl();
 //        }
-//        testInit();
-        pageControl.getNbBar().hide();
+        testInit();
+//        pageControl.getNbBar().hide();
     }
 
     private void nomalInit(String url) {
@@ -86,7 +86,7 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         mintent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
 
         startActivity(mintent);
-        pageControl.getNbBar().hide();
+//        pageControl.getNbBar().hide();
 
         requestCodeQRCodePermissions();
         this.finish();
@@ -95,7 +95,7 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
     private void compareUrl(String newUrl) {
         SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
         String oldUrl = sharedPreferences.getString("url","https://m.mspace.com.sg/mobile/pages/client/home");
-        pageControl.getNbBar().hide();
+//        pageControl.getNbBar().hide();
 
         if (!newUrl.equals(oldUrl)) {
             nomalInit(newUrl);
@@ -118,7 +118,7 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
 
         requestCodeQRCodePermissions();
 
-        pageControl.getNbBar().hide();
+//        pageControl.getNbBar().hide();
 
         inputButton = findViewById(R.id.inputButton);
         defaultButton = findViewById(R.id.defaultButton);
