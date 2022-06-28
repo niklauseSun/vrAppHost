@@ -92,6 +92,7 @@ public class QuickWebView extends WebView {
         settings.setLoadWithOverviewMode(true);
         // 设置内置的缩放控件（若SupportZoom为false，该设置项无效）
         settings.setBuiltInZoomControls(true);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         // 设置缓存模式
         // LOAD_DEFAULT 根据HTTP协议header中设置的cache-control属性来执行加载策略
         // LOAD_CACHE_ELSE_NETWORK 只要本地有无论是否过期都从本地获取

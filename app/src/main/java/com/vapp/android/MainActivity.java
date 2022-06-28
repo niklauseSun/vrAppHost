@@ -69,9 +69,9 @@ public class MainActivity extends FrmBaseActivity implements EasyPermissions.Per
         SharedPreferences sharedPreferences= getSharedPreferences("data", Context .MODE_PRIVATE);
         String url = sharedPreferences.getString("baseReqUrl","https://m.mspace.com.sg/mobile/");
 
-//        nomalInit("https://b.ujbook.com/");
+        nomalInit("https://student.traefik.99rongle.com/mobile/pages/client/login?version=1.0.0");
 //        requestBaseUrl();
-        testInit();
+//        testInit();
     }
 
     private void nomalInit(String url) {
