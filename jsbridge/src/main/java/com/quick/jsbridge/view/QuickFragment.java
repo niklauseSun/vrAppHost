@@ -28,6 +28,7 @@ import com.quick.jsbridge.takeToSee.AGChatManager;
 import com.quick.jsbridge.takeToSee.AgApplication;
 import com.quick.jsbridge.view.webview.QuickWebView;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -370,6 +371,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         logoutAndLeaveChannel();
         updateUserStatus(100);
         rtmClient.release();
+        Log.i("destory", "??");
     }
 
     @Override
@@ -912,7 +914,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                 rtcEngine.leaveChannel();
             }
             rtcEngine = null;
-            rtmClient.release();
+//            rtmClient.release();
         }
 
         @JavascriptInterface
@@ -1161,6 +1163,10 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         final String loginToken = getMessageToken(mUserId);
         Log.i("login Token", loginToken);
         Log.i("login userId", mUserId);
+        if (loginToken.isEmpty()) {
+            Toast.makeText(getContext(), "Get token error", Toast.LENGTH_SHORT);
+            return;
+        }
         rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
             @Override
             public void onSuccess(Void unused) {
