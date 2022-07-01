@@ -370,7 +370,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         super.onDestroyView();
         logoutAndLeaveChannel();
         updateUserStatus(100);
-        rtmClient.release();
+//        rtmClient.release();
         Log.i("destory", "??");
     }
 
@@ -1028,17 +1028,14 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         rtmClient.setLogFile(filePath);
 
         SharedPreferences sp = getActivity().getSharedPreferences("rtmToken", Context.MODE_PRIVATE);
-        final String token = sp.getString("token", "");
-        Long getTime = sp.getLong("tokenTime",0);
+        final String token = sp.getString("token" + mUserId, "");
+        Long getTime = sp.getLong("tokenTime" + mUserId,0);
 
         if (!token.isEmpty()) {
             Long currentTime = new Date().getTime();
 
             if ((currentTime - getTime)/ 1000 / 60 <= 60) {
                 // token 还在有效期内
-//                String loginToken = getMessageToken(mUserId);
-//                    Log.i("login Token", loginToken);
-//                    Log.i("login userId", mUserId);
                     rtmClient.login(token, mUserId, new ResultCallback<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
@@ -1058,11 +1055,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                             map.put("userId", mUserId);
                             callOnData(new JSONObject(map).toString());
                             Log.i("init", "login fail");
-//                            updateUserStatus(100);
-
-//                            if (errorInfo.getErrorCode() == 4) {
-                                loginWithToken();
-//                            }
+                            loginWithToken();
                         }
                     });
             } else {
@@ -1072,91 +1065,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         } else {
             loginWithToken();
         }
-
-//        try {
-//            rtmClient.logout(new ResultCallback<Void>() {
-//                @Override
-//                public void onSuccess(Void unused) {
-//                    Log.i("logout", "success");
-//                    final String loginToken = getMessageToken(mUserId);
-//                    Log.i("login Token", loginToken);
-//                    Log.i("login userId", mUserId);
-//
-//                    Handler handler = new Handler();
-//                    handler.postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
-//                                @Override
-//                                public void onSuccess(Void unused) {
-//                                    HashMap map = new HashMap();
-//                                    map.put("type", "initMessageActionSuccess");
-//                                    map.put("userId", mUserId);
-//                                    callOnData(new JSONObject(map).toString());
-//                                    Log.i("init", "login success");
-//                                    updateUserStatus(101);
-//                                }
-//
-//                                @Override
-//                                public void onFailure(ErrorInfo errorInfo) {
-//                                    HashMap map = new HashMap();
-//                                    map.put("type", "initMessageActionFail");
-//                                    map.put("errorInfo", errorInfo.getErrorDescription());
-//                                    map.put("userId", mUserId);
-//
-//                                    callOnData(new JSONObject(map).toString());
-//                                    Log.i("init", "login fail");
-//                                    updateUserStatus(100);
-//                                }
-//                            });
-//                        }
-//                    }, 4000);
-//
-//
-//                }
-//
-//                @Override
-//                public void onFailure(ErrorInfo errorInfo) {
-//                    Log.i("logout", "fail");
-//                    String loginToken = getMessageToken(mUserId);
-//                    Log.i("login Token", loginToken);
-//                    Log.i("login userId", mUserId);
-//                    rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
-//                        @Override
-//                        public void onSuccess(Void unused) {
-//                            HashMap map = new HashMap();
-//                            map.put("type", "initMessageActionSuccess");
-//                            map.put("userId", mUserId);
-//                            callOnData(new JSONObject(map).toString());
-//                            Log.i("init", "login success");
-//                            updateUserStatus(101);
-//                        }
-//
-//                        @Override
-//                        public void onFailure(ErrorInfo errorInfo) {
-//                            HashMap map = new HashMap();
-//                            map.put("type", "initMessageActionFail");
-//                            map.put("errorInfo", errorInfo.getErrorDescription());
-//                            map.put("userId", mUserId);
-//
-//                            callOnData(new JSONObject(map).toString());
-//                            Log.i("init", "login fail");
-//                            updateUserStatus(100);
-//                        }
-//                    });
-//                }
-//            });
-//
-//        } catch (Exception e) {
-//            Log.e(MESSAGE_TAG, Log.getStackTraceString(e));
-//            HashMap map = new HashMap();
-//            map.put("type", "initMessageActionFail");
-//            map.put("errorInfo", Log.getStackTraceString(e));
-//            map.put("userId", mUserId);
-//
-//            callOnData(new JSONObject(map).toString());
-//            throw new RuntimeException("NEED TO check rtc sdk init fatal error\n" + Log.getStackTraceString(e));
-//        }
     }
 
     private void loginWithToken() {
@@ -1195,8 +1103,8 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
 
     private void saveToken(String token) {
         SharedPreferences.Editor edit = getActivity().getSharedPreferences("rtmToken", Context.MODE_PRIVATE).edit();
-        edit.putString("token", token);
-        edit.putLong("tokenTime", new Date().getTime());
+        edit.putString("token" + mUserId, token);
+        edit.putLong("tokenTime" + mUserId, new Date().getTime());
         edit.commit();
     }
 
@@ -1253,13 +1161,15 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                         JSONObject jsonObject = new JSONObject(rt);
                         if (jsonObject.has("data")){
                             result[0]=jsonObject.getString("data");
+                            joinChannelWithToken(fromId, channelName, result[0]);
                         }else{
                             result[0]="-";
+                            Toast.makeText(getContext(), "Get Token Error", Toast.LENGTH_SHORT);
                         }
 
                     }
                 } catch (Exception e) {
-
+                    Toast.makeText(getContext(), "Get Token Net Error", Toast.LENGTH_SHORT);
                 }
             }
         }).start();
@@ -1435,19 +1345,21 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
     }
 
     private void joinChannelWithUid(String uid, String channelName) {
+        getToken(uid, channelName);
+    }
 
-        String accessToken = getToken(uid, channelName);
+    private void joinChannelWithToken(String uid, String channelName, String token) {
         rtcEngine.setClientRole(Constants.CLIENT_ROLE_BROADCASTER);
         rtcEngine.setAudioProfile(Constants.AUDIO_PROFILE_MUSIC_HIGH_QUALITY, Constants.AUDIO_SCENARIO_GAME_STREAMING);
         rtcEngine.setDefaultAudioRoutetoSpeakerphone(true);
 
         rtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_COMMUNICATION);
         Log.i("joinChannel channelName", channelName + "");
-        Log.i("joinChannel accessToken", accessToken);
+        Log.i("joinChannel accessToken", token);
         Log.i("joinChannel uid", uid);
         updateUserStatus(102);
 
-        rtcEngine.joinChannel(accessToken, "channel" + channelName, "", Integer.parseInt(uid));
+        rtcEngine.joinChannel(token, "channel" + channelName, "", Integer.parseInt(uid));
     }
 
     private void updateUserStatusWithId(final Integer status, final String uid) {
