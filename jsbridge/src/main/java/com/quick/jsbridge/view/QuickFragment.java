@@ -492,7 +492,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                     // 临时通过消息接收主叫方挂断电话
                     // 对方挂断，更新界面
                     callUpdateChatStatus("8", null);
-//                    logoutAndLeaveChannel();
                     if (rtcEngine != null) {
                         rtcEngine.leaveChannel();
                     }
@@ -1411,7 +1410,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         if (rtcEngine != null) {
             rtcEngine.leaveChannel();
         }
-        RtcEngine.destroy();
     }
 
     private void onRemoteUserLeft(int uid, int reason) {
