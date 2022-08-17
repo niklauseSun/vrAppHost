@@ -25,6 +25,10 @@ public class VWebView extends AppCompatActivity {
                 return false;
             }
         });
+        // 需要删掉
+        mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+        mWebView.getSettings().setDomStorageEnabled(true);
 
         // 打开调试模式 发布时要去掉
         WebView.setWebContentsDebuggingEnabled(true);
