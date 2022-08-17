@@ -345,8 +345,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
 
         if (resultCode == PERMISSION_REQ_ID_RECORD_AUDIO) {
             loginRtm();
-//            initAgoraEngineAndJoinChannel();
-//            joinChannel();
         } else {
             control.onResult(requestCode, resultCode, data);
         }
@@ -857,7 +855,11 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
 
         @JavascriptInterface
         public void testJs() {
-            Toast.makeText(getContext() , "testJS", Toast.LENGTH_SHORT).show();
+            try {
+                Toast.makeText(getContext() , "testJS", Toast.LENGTH_SHORT).show();
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
         }
 
         @JavascriptInterface
@@ -891,7 +893,11 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                 // Chrome browser presumably not installed so allow user to choose instead
                 intent.setPackage(null);
                 getContext().startActivity(intent);
-                Toast.makeText(getContext() , "Need Chrome to experience AR feature", Toast.LENGTH_SHORT).show();
+                try {
+                    Toast.makeText(getContext() , "Need Chrome to experience AR feature", Toast.LENGTH_SHORT).show();
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                }
             }
         }
 
@@ -1007,7 +1013,7 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
      */
     private void loginRtc() {
         try {
-            rtcEngine = RtcEngine.create(getContext(), getString(R.string.agora_app_id), rtcEngineEventHandler);
+            rtcEngine = RtcEngine.create(getContext(), "3dc9b22d18a8405ea10efc0fcc2054d7", rtcEngineEventHandler);
             rtcEngine.setLogFilter(0x0f);
             String ts = new SimpleDateFormat("yyyyMMdd").format(new Date());
             String filePath = "/sdcard/" + ts + "/agorartc.log";
@@ -1039,11 +1045,13 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                         @Override
                         public void onSuccess(Void unused) {
                             HashMap map = new HashMap();
+
                             map.put("type", "initMessageActionSuccess");
                             map.put("userId", mUserId);
                             callOnData(new JSONObject(map).toString());
-                            Log.i("init", "login success");
+                            Log.i("init", "login success 222");
                             updateUserStatus(101);
+
                         }
 
                         @Override
@@ -1070,34 +1078,6 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
         final String loginToken = getMessageToken(mUserId);
         Log.i("login Token", loginToken);
         Log.i("login userId", mUserId);
-        if (loginToken.isEmpty()) {
-            Toast.makeText(getContext(), "Get token error", Toast.LENGTH_SHORT);
-            return;
-        }
-        rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                HashMap map = new HashMap();
-                map.put("type", "initMessageActionSuccess");
-                map.put("userId", mUserId);
-                callOnData(new JSONObject(map).toString());
-                Log.i("init", "login success");
-                updateUserStatus(101);
-                saveToken(loginToken);
-            }
-
-            @Override
-            public void onFailure(ErrorInfo errorInfo) {
-                HashMap map = new HashMap();
-                map.put("type", "initMessageActionFail");
-                map.put("errorInfo", errorInfo.getErrorDescription());
-                map.put("userId", mUserId);
-
-                callOnData(new JSONObject(map).toString());
-                Log.i("init", "login fail");
-//                updateUserStatus(100);
-            }
-        });
     }
 
     private void saveToken(String token) {
@@ -1120,7 +1100,12 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
             public void onFailure(ErrorInfo errorInfo) {
                 final String errDes = errorInfo.getErrorDescription();
                 Log.d(MESSAGE_TAG, "seedPeerMessage >>> fail == " + errDes);
-                Toast.makeText(getContext(), "Customer service is unreachable now, please call again later.", Toast.LENGTH_SHORT).show();
+                try {
+                    Toast.makeText(getContext(), "Customer service is unreachable now, please call again later.", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
         });
     }
@@ -1163,12 +1148,22 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                             joinChannelWithToken(fromId, channelName, result[0]);
                         }else{
                             result[0]="-";
-                            Toast.makeText(getContext(), "Get Token Error", Toast.LENGTH_SHORT);
+                            try {
+                                Toast.makeText(getContext(), "Get Token Error", Toast.LENGTH_SHORT).show();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
                         }
 
                     }
                 } catch (Exception e) {
-                    Toast.makeText(getContext(), "Get Token Net Error", Toast.LENGTH_SHORT);
+                    e.printStackTrace();
+                    try {
+                        Toast.makeText(getContext(), "Get Token Net Error", Toast.LENGTH_SHORT).show();
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
+                    }
                 }
             }
         }).start();
@@ -1263,7 +1258,37 @@ public class QuickFragment extends FrmBaseFragment implements IQuickFragment, Ea
                         result[0] =rt;
                         JSONObject jsonObject = new JSONObject(rt);
                         if (jsonObject.has("data")){
+                            final String loginToken = jsonObject.getString("data");
                             result[0]=jsonObject.getString("data");
+
+                            rtmClient.login(loginToken, mUserId, new ResultCallback<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    HashMap map = new HashMap();
+                                    map.put("type", "initMessageActionSuccess");
+                                    map.put("userId", mUserId);
+                                    callOnData(new JSONObject(map).toString());
+                                    Log.i("init", "login success toast");
+                                    updateUserStatus(101);
+                                    saveToken(loginToken);
+                                }
+
+                                @Override
+                                public void onFailure(ErrorInfo errorInfo) {
+                                    HashMap map = new HashMap();
+                                    map.put("type", "initMessageActionFail");
+                                    map.put("errorInfo", errorInfo.getErrorDescription());
+                                    map.put("userId", mUserId);
+
+                                    callOnData(new JSONObject(map).toString());
+                                    Log.i("init", "login fail");
+                                    try {
+                                        Toast.makeText(getContext(), "Failed to login as customer service, please stop the APP then open and login again.", Toast.LENGTH_SHORT).show();
+                                    } catch (Exception ee) {
+                                        ee.printStackTrace();
+                                    }
+                                }
+                            });
                         }else{
                             result[0]="-";
                         }
